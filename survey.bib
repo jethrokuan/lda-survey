@@ -1,0 +1,111 @@
+@article{asuncion-2012-smoot-infer,
+  author =       {Asuncion, Arthur and Welling, Max and Smyth,
+                  Padhraic and Teh, Yee Whye},
+  title =        {On Smoothing and Inference for Topic Models},
+  journal =      {CoRR},
+  year =         2012,
+  url =          {http://arxiv.org/abs/1205.2662v1},
+  abstract =     {Latent Dirichlet analysis, or topic modeling, is a
+                  flexible latent variable framework for modeling
+                  high-dimensional sparse count data. Various learning
+                  algorithms have been developed in recent years,
+                  including collapsed Gibbs sampling, variational
+                  inference, and maximum a posteriori estimation, and
+                  this variety motivates the need for careful
+                  empirical comparisons. In this paper, we highlight
+                  the close connections between these approaches. We
+                  find that the main differences are attributable to
+                  the amount of smoothing applied to the counts. When
+                  the hyperparameters are optimized, the differences
+                  in performance among the algorithms diminish
+                  significantly. The ability of these algorithms to
+                  achieve solutions of comparable accuracy gives us
+                  the freedom to select computationally efficient
+                  approaches. Using the insights gained from this
+                  comparative study, we show how accurate topic models
+                  can be learned in several seconds on text corpora
+                  with thousands of documents.},
+  archivePrefix ={arXiv},
+  eprint =       {1205.2662},
+  primaryClass = {cs.LG},
+}
+
+@article{blei2003latent,
+  title={Latent dirichlet allocation},
+  author={Blei, David M and Ng, Andrew Y and Jordan, Michael I},
+  journal={Journal of machine Learning research},
+  volume=3,
+  number={Jan},
+  pages={993--1022},
+  year=2003
+}
+
+@article{srivastava-2017-autoen-variat,
+  author =       {Srivastava, Akash and Sutton, Charles},
+  title =        {Autoencoding Variational Inference For Topic Models},
+  journal =      {CoRR},
+  year =         2017,
+  url =          {http://arxiv.org/abs/1703.01488v1},
+  abstract =     {Topic models are one of the most popular methods for
+                  learning representations of text, but a major
+                  challenge is that any change to the topic model
+                  requires mathematically deriving a new inference
+                  algorithm. A promising approach to address this
+                  problem is autoencoding variational Bayes (AEVB),
+                  but it has proven diffi- cult to apply to topic
+                  models in practice. We present what is to our
+                  knowledge the first effective AEVB based inference
+                  method for latent Dirichlet allocation (LDA), which
+                  we call Autoencoded Variational Inference For Topic
+                  Model (AVITM). This model tackles the problems
+                  caused for AEVB by the Dirichlet prior and by
+                  component collapsing. We find that AVITM matches
+                  traditional methods in accuracy with much better
+                  inference time. Indeed, because of the inference
+                  network, we find that it is unnecessary to pay the
+                  computational cost of running variational
+                  optimization on test data. Because AVITM is black
+                  box, it is readily applied to new topic models. As a
+                  dramatic illustration of this, we present a new
+                  topic model called ProdLDA, that replaces the
+                  mixture model in LDA with a product of experts. By
+                  changing only one line of code from LDA, we find
+                  that ProdLDA yields much more interpretable topics,
+                  even if LDA is trained via collapsed Gibbs
+                  sampling.},
+  archivePrefix ={arXiv},
+  eprint =       {1703.01488},
+  primaryClass = {stat.ML},
+}
+
+@article{dumoulin-2016-adver-learn-infer,
+  author =       {Dumoulin, Vincent and Belghazi, Ishmael and Poole,
+                  Ben and Mastropietro, Olivier and Lamb, Alex and
+                  Arjovsky, Martin and Courville, Aaron},
+  title =        {Adversarially Learned Inference},
+  journal =      {CoRR},
+  year =         2016,
+  url =          {http://arxiv.org/abs/1606.00704v3},
+  abstract =     {We introduce the adversarially learned inference
+                  (ALI) model, which jointly learns a generation
+                  network and an inference network using an
+                  adversarial process. The generation network maps
+                  samples from stochastic latent variables to the data
+                  space while the inference network maps training
+                  examples in data space to the space of latent
+                  variables. An adversarial game is cast between these
+                  two networks and a discriminative network is trained
+                  to distinguish between joint latent/data-space
+                  samples from the generative network and joint
+                  samples from the inference network. We illustrate
+                  the ability of the model to learn mutually coherent
+                  inference and generation networks through the
+                  inspections of model samples and reconstructions and
+                  confirm the usefulness of the learned
+                  representations by obtaining a performance
+                  competitive with state-of-the-art on the
+                  semi-supervised SVHN and CIFAR10 tasks.},
+  archivePrefix ={arXiv},
+  eprint =       {1606.00704},
+  primaryClass = {stat.ML},
+}

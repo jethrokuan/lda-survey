@@ -1,0 +1,130 @@
+\documentclass[letterpaper]{article}
+\usepackage{aaai}
+\usepackage{hyperref}
+\usepackage{courier}
+\usepackage{listings}
+\usepackage[round]{natbib}
+
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
+
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+\pdfinfo{
+  /Title (Topic Modelling for Scientific Documents)
+  /Author (Jethro Kuan)}
+\setcounter{secnumdepth}{0}
+\begin{document}
+\nocopyright
+\bibliographystyle{plainnat}
+
+\title{Topic Modelling for Scientific Documents}
+\author{Jethro Kuan \\
+  WING-NUS\\
+}
+\maketitle
+\begin{abstract}
+  \begin{quote}
+    Topic models are statistical models, used to discover abstract
+    topics that occur in a collection of documents. In this paper, we
+    look at the application of topic models in the domain of
+    scientific documents, and discuss the available shortcomings and
+    solutions.
+  \end{quote}
+\end{abstract}
+
+\section{Introduction}
+The availability of knowledge through scientific documents is not met
+appropriately with the tools to navigate it. Tools like Semantic
+Scholar use artificial intelligence methods to digest scientific
+documents and present relevant results. An example of one such
+technique is topic modeling.
+
+Topic models are probabilistic models for uncovering the underlying
+semantic structure of a document collection based on a hierarchical
+Bayesian analysis of the original texts. For more than a decade,
+Latent Dirichlet Allocation (LDA) and its variants have been the
+predominant technique for topic modeling.
+
+\section{LDA}
+Here we develop LDA from the principles of generative probabilistic
+models.
+
+LDA models each document as a mixture of topics, where a topic $\beta_k$ is
+a probability distribution over a fixed vocabulary of terms. The
+generative process is described as follows:
+
+\begin{lstlisting}[mathescape=true]
+for each document $w$ do
+  Draw topic distribution $\theta \sim Dir(\alpha)$;
+  for each word at position $n$ do
+    Sample topic $z_n \sim Multinomial(\theta)$
+    Sample word $w_n \sim Multinomial(\beta_{z_n})$
+\end{lstlisting}
+
+then:
+
+\begin{equation}
+  p(w | \alpha, \beta) = \int_\theta \left( \sum_{n=1}^{N}
+    \sum_{z_n = 1}^{k} p(w_n | z_n, \beta)p(z_n | \theta) \right)
+  p(\theta | \alpha) d\theta
+\end{equation}
+
+Posterior inference over the hidden variables $\theta$ and $z$ is
+intractable due to the coupling between $\theta$ and $\beta$ under the
+multinomial assumption. \citep{blei2003latent}
+
+\subsection{Statistical Assumptions}
+\label{subsec:label}
+Despite its successes, LDA makes various statistical assumptions that
+make it less suitable for the task of modelling scientific documents.
+
+1. The order of documents do not matter.
+
+The meaning of keyphrases used in scientific literature change over
+time. For example, neural networks meant a different thing two decades
+ago.
+
+2. Bag of Words
+
+\section{Inference Methods}
+\label{sec:inference}
+Many learning algorithms have been developed, including collapsed
+Gibbs Sampling, Variational Inference, Collapsed Variational
+Inference, and MAP estimation.
+
+A comprehensive look at the different inference approximation
+algorithms, shows that the performance differences can be explained
+away by setting certain smoothing hyperparameters
+\citep{asuncion-2012-smoot-infer}. Nevertheless, we will take a closer
+look at them.
+
+\subsection{Variational Inference}
+\label{subsec:variational_inference}
+Mean field variational inference (MFVI) breaks the coupling between
+$\theta$ and $z$ by introducing free variational parameters $\gamma$
+over $\theta$ and $\phi$ over $z$ and dropping the edges between them.
+This results in an approximate posterior $q(\theta, z | \gamma, \phi)
+= q_\gamma(\theta)\prod_nq_\phi(z_n)$.
+
+To best approximate the true posterior, we frame it as an optimization
+problem, minimizing $L$ where:
+
+\begin{equation}
+L(\gamma, \phi | \alpha, \beta) = D_{KL}\left[ q(\theta, z | \gamma,
+  \phi) || p(\theta, z | \alpha, \beta) \right] - \log p(w | \alpha, \beta)
+\end{equation}
+
+This optimization has closed form coordinate descent equations,
+because the Dirichlet is conjugate to the Multinomial distribution.
+This computational convenience comes at the expense of robustness,
+making it difficult to apply to other more complicated topic models.
+
+\section{Extensions to LDA}
+\label{sec:ext:LDA}
+
+
+\section{Extension to Inference Methods}
+\label{sec:ext:inference}
+
+\bibliography{survey}
+\end{document}
