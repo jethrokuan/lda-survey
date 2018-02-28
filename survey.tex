@@ -1,6 +1,7 @@
 \documentclass[letterpaper]{article}
 \usepackage{aaai}
 \usepackage{hyperref}
+\usepackage{lmodern}
 \usepackage{courier}
 \usepackage{listings}
 \usepackage[round]{natbib}
@@ -33,8 +34,8 @@
 \end{abstract}
 
 \section{Introduction}
-The availability of knowledge through scientific documents is not met
-appropriately with the tools to navigate it. Tools like Semantic
+The availability of knowledge through scientific documents is not
+sufficiently met with the tools to navigate it. Tools like Semantic
 Scholar use artificial intelligence methods to digest scientific
 documents and present relevant results. An example of one such
 technique is topic modeling.
@@ -46,12 +47,13 @@ Latent Dirichlet Allocation (LDA) and its variants have been the
 predominant technique for topic modeling.
 
 \section{LDA}
-Here we develop LDA from the principles of generative probabilistic
-models.
+Latent Dirichlet analysis is widely considered to be the simplest
+topic model. Here we develop LDA from the principles of generative
+probabilistic models.
 
-LDA models each document as a mixture of topics, where a topic $\beta_k$ is
-a probability distribution over a fixed vocabulary of terms. The
-generative process is described as follows:
+LDA models each document as a mixture of topics, where a topic
+$\beta_k$ is a probability distribution over a fixed vocabulary of
+terms. The generative process is described as follows:
 
 \begin{lstlisting}[mathescape=true]
 for each document $w$ do
@@ -61,7 +63,13 @@ for each document $w$ do
     Sample word $w_n \sim Multinomial(\beta_{z_n})$
 \end{lstlisting}
 
-then:
+Using the Dirichlet distribution as a prior biases the model to
+allocate a document to a small number of topics. With similar
+reasoning, topic distributions assign high probabilities to a small
+number of words.
+
+Given this graphical model, we can compute the probability of a word,
+given the LDA parameters:
 
 \begin{equation}
   p(w | \alpha, \beta) = \int_\theta \left( \sum_{n=1}^{N}
@@ -71,12 +79,12 @@ then:
 
 Posterior inference over the hidden variables $\theta$ and $z$ is
 intractable due to the coupling between $\theta$ and $\beta$ under the
-multinomial assumption. \citep{blei2003latent}
+multinomial assumption. \citep{blei2003latent}.
 
 \subsection{Statistical Assumptions}
 \label{subsec:label}
-Despite its successes, LDA makes various statistical assumptions that
-make it less suitable for the task of modelling scientific documents.
+Generative models like LDA make statistical assumptions that makes
+inference possible. These assumptions are listed below:
 
 1. The order of documents do not matter.
 
@@ -121,10 +129,52 @@ making it difficult to apply to other more complicated topic models.
 
 \section{Extensions to LDA}
 \label{sec:ext:LDA}
+Many extensions of LDA have been devised to relax the statistical
+assumptions made in the model. We discuss some of them below.
 
+\subsection{Dynamic Topic Modeling}
+\label{sub:dtm}
+Dynamic Topic Models (DTMs) was proposed to
+remove the assumption that documents are \textit{exchangeable}.
+\citep{blei2006dynamic}
 
+This is indeed the case for scientific documents, where both content,
+and the meaning of words evolve over time.
+
+In DTM, data is assumed to be divided by discrete time slices. The
+topics associated with time slice $t$ evolve from the time slice
+$t-1$. Because the Dirichlet distribution is not amenable to
+sequential modeling, the Gaussian distribution is used instead to
+model the sequence of random variables.
+
+The generative process for time slice $t$ is as follows:
+
+\begin{lstlisting}[mathescape=true]
+Draw topic distribution $\beta_t | \beta_{t-1} \sim N(\beta_{t-1},
+  \sigma^2I)$;
+Draw $\alpha_t | \alpha_{t-1} \sim N\left( \alpha_{t-1}, \delta^2I
+  \right)$
+for each document $w$ do
+  Draw $\eta_{w,t} \sim N\left( \alpha_t, a^2I \right)$
+  for each word at position $n$ do:
+    Sample topic $z_{t,n} \sim Multinomial(\pi(\eta_{w,t}))$
+    Sample word $w_{t,d,n} \sim Multinomial(\beta_{t,z,n})$
+\end{lstlisting}
+
+$\pi$ maps the multinomial parameters to the mean parameters,
+$\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
+
+The Multinomial and Guassian distributions are not conjugates,
+inference via Gibb's sampling is difficult. Hence, posterior
+inference is accomplished via variational inference instead.
+
+Further extensions of this approach include the continuous Dynamic
+Topic Models (cDTM), which removes the discretization of the time
+slices. \citep{wang-2012-contin-time} This model has been used to
+predict the timestamp of documents.
 \section{Extension to Inference Methods}
 \label{sec:ext:inference}
 
+\section{Alternatives to LDA}
 \bibliography{survey}
 \end{document}

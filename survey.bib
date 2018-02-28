@@ -109,3 +109,42 @@
   eprint =       {1606.00704},
   primaryClass = {stat.ML},
 }
+
+@inproceedings{blei2006dynamic,
+  title={Dynamic topic models},
+  author={Blei, David M and Lafferty, John D},
+  booktitle={Proceedings of the 23rd international conference on Machine learning},
+  pages={113--120},
+  year={2006},
+  organization={ACM}
+}
+
+@article{wang-2012-contin-time,
+  author =       {Wang, Chong and Blei, David and Heckerman, David},
+  title =        {Continuous Time Dynamic Topic Models},
+  journal =      {CoRR},
+  year =         2012,
+  url =          {http://arxiv.org/abs/1206.3298v2},
+  abstract =     {In this paper, we develop the continuous time
+                  dynamic topic model (cDTM). The cDTM is a dynamic
+                  topic model that uses Brownian motion to model the
+                  latent topics through a sequential collection of
+                  documents, where a "topic" is a pattern of word use
+                  that we expect to evolve over the course of the
+                  collection. We derive an efficient variational
+                  approximate inference algorithm that takes advantage
+                  of the sparsity of observations in text, a property
+                  that lets us easily handle many time points. In
+                  contrast to the cDTM, the original discrete-time
+                  dynamic topic model (dDTM) requires that time be
+                  discretized. Moreover, the complexity of variational
+                  inference for the dDTM grows quickly as time
+                  granularity increases, a drawback which limits
+                  fine-grained discretization. We demonstrate the cDTM
+                  on two news corpora, reporting both predictive
+                  perplexity and the novel task of time stamp
+                  prediction.},
+  archivePrefix ={arXiv},
+  eprint =       {1206.3298},
+  primaryClass = {cs.IR},
+}
