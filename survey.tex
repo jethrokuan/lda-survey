@@ -11,14 +11,13 @@
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
 \pdfinfo{
-  /Title (Topic Modelling for Scientific Documents)
+  /Title (Topic Modeling for Scientific Documents)
   /Author (Jethro Kuan)}
-\setcounter{secnumdepth}{0}
 \begin{document}
 \nocopyright
 \bibliographystyle{plainnat}
 
-\title{Topic Modelling for Scientific Documents}
+\title{Topic Modeling for Scientific Documents}
 \author{Jethro Kuan \\
   WING-NUS\\
 }
@@ -27,33 +26,43 @@
   \begin{quote}
     Topic models are statistical models, used to discover abstract
     topics that occur in a collection of documents. In this paper, we
-    look at the application of topic models in the domain of
-    scientific documents, and discuss the available shortcomings and
-    solutions.
+    focus on the technique of topic modeling, particularly in its
+    application to the domain of scientific documents. We discuss
+    different approaches to topic modeling, and weigh in on their
+    strengths and shortcomings.
   \end{quote}
 \end{abstract}
 
 \section{Introduction}
-The availability of knowledge through scientific documents is not
-sufficiently met with the tools to navigate it. Tools like Semantic
-Scholar use artificial intelligence methods to digest scientific
-documents and present relevant results. An example of one such
-technique is topic modeling.
+In this information age, the availability of knowledge is
+insufficiently met with the tools to navigate it. Tools like Semantic
+Scholar use machine learning to process scientific documents and
+extract meaningful structure, empowering researchers to discover
+papers more relevant to their work. One such technique is topic
+modeling.
 
-Topic models are probabilistic models for uncovering the underlying
-semantic structure of a document collection based on a hierarchical
-Bayesian analysis of the original texts. For more than a decade,
-Latent Dirichlet Allocation (LDA) and its variants have been the
-predominant technique for topic modeling.
+\section {Topic Modeling}
+Discovering underlying structure within scientific documents is an
+unsupervised learning problem. Generative models, such as topic
+modeling, uncover the underlying semantic structure of a document
+collection based on a hierarchical Bayesian analysis of the texts. In
+this paper, we briefly discuss the predominant model: Latent Dirichlet
+Allocation (LDA) and its variants. In addition, we explore other
+models that are not derivatives of LDA, such as the Replicated Softmax.
 
 \section{LDA}
 Latent Dirichlet analysis is widely considered to be the simplest
-topic model. Here we develop LDA from the principles of generative
-probabilistic models.
+topic model. LDA models each document as a mixture of topics, where a
+topic $\beta_k$ is a probability distribution over a fixed vocabulary
+of terms.
 
-LDA models each document as a mixture of topics, where a topic
-$\beta_k$ is a probability distribution over a fixed vocabulary of
-terms. The generative process is described as follows:
+The Dirichlet distribution encourages sparsity, encoding the belief
+that the document-topic distribution has few topics per document, and
+the topic-word distribution has few words per topic. These two beliefs
+work against each other, and LDA discovers this sparsity balance,
+which gives rise to the structure of the textual data.
+
+The generative process is described as follows:
 
 \begin{lstlisting}[mathescape=true]
 for each document $w$ do
@@ -63,13 +72,7 @@ for each document $w$ do
     Sample word $w_n \sim Multinomial(\beta_{z_n})$
 \end{lstlisting}
 
-Using the Dirichlet distribution as a prior biases the model to
-allocate a document to a small number of topics. With similar
-reasoning, topic distributions assign high probabilities to a small
-number of words.
-
-Given this graphical model, we can compute the probability of a word,
-given the LDA parameters:
+We can compute the probability of a word, given the LDA parameters:
 
 \begin{equation}
   p(w | \alpha, \beta) = \int_\theta \left( \sum_{n=1}^{N}
@@ -79,12 +82,15 @@ given the LDA parameters:
 
 Posterior inference over the hidden variables $\theta$ and $z$ is
 intractable due to the coupling between $\theta$ and $\beta$ under the
-multinomial assumption. \citep{blei2003latent}.
+multinomial assumption. \citep{blei2003latent}. Hence, we rely on
+techniques for approximate inference of the posterior. These
+techniques are discussed in ~\autoref{sec:inference}.
 
 \subsection{Statistical Assumptions}
-\label{subsec:label}
-Generative models like LDA make statistical assumptions that makes
-inference possible. These assumptions are listed below:
+\label{subsec:statistical-assumptions}
+As Mackay quips, inference cannot be made without statistical
+assumptions. LDA makes several assumptions, some rendering it less
+suited for application to the domain of scientific documents.
 
 1. The order of documents do not matter.
 
@@ -94,11 +100,20 @@ ago.
 
 2. Bag of Words
 
+Variants of LDA relax these statistical assumptions, or make other
+assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
+~\autoref{sec:dtm}, and briefly mention the rest in the appendix.
+
 \section{Inference Methods}
 \label{sec:inference}
-Many learning algorithms have been developed, including collapsed
-Gibbs Sampling, Variational Inference, Collapsed Variational
-Inference, and MAP estimation.
+Approximating intractable probability densities is a well-studied
+problem in modern statistics. This problem arises often in Bayesian
+statistics, where inference over latent variables are required to
+compute the posterior probability densities. Many learning algorithms
+have been developed, including collapsed Gibbs Sampling, Variational
+Inference, Collapsed Variational Inference, and MAP estimation. Each
+of these approximation techniques have their own strength and
+shortcomings.
 
 A comprehensive look at the different inference approximation
 algorithms, shows that the performance differences can be explained
@@ -106,8 +121,11 @@ away by setting certain smoothing hyperparameters
 \citep{asuncion-2012-smoot-infer}. Nevertheless, we will take a closer
 look at them.
 
+\subsection{Gibb's Sampling}
+\label{subsec:gibbs-sampling}
+
 \subsection{Variational Inference}
-\label{subsec:variational_inference}
+\label{subsec:vi}
 Mean field variational inference (MFVI) breaks the coupling between
 $\theta$ and $z$ by introducing free variational parameters $\gamma$
 over $\theta$ and $\phi$ over $z$ and dropping the edges between them.
@@ -122,24 +140,19 @@ L(\gamma, \phi | \alpha, \beta) = D_{KL}\left[ q(\theta, z | \gamma,
   \phi) || p(\theta, z | \alpha, \beta) \right] - \log p(w | \alpha, \beta)
 \end{equation}
 
-This optimization has closed form coordinate descent equations,
-because the Dirichlet is conjugate to the Multinomial distribution.
-This computational convenience comes at the expense of robustness,
-making it difficult to apply to other more complicated topic models.
+This optimization has closed form coordinate descent equations for
+LDA, because the Dirichlet is conjugate to the Multinomial
+distribution. This computational convenience comes at the expense of
+robustness, making it difficult to apply to other more complicated
+topic models.
 
-\section{Extensions to LDA}
-\label{sec:ext:LDA}
-Many extensions of LDA have been devised to relax the statistical
-assumptions made in the model. We discuss some of them below.
+\section{Dynamic Topic Modeling}
+\label{sec:dtm}
+Dynamic Topic Modeling (DTM) was proposed to remove the assumption
+that documents are \textit{exchangeable}. \citep{blei2006dynamic}
 
-\subsection{Dynamic Topic Modeling}
-\label{sub:dtm}
-Dynamic Topic Models (DTMs) was proposed to
-remove the assumption that documents are \textit{exchangeable}.
-\citep{blei2006dynamic}
-
-This is indeed the case for scientific documents, where both content,
-and the meaning of words evolve over time.
+The order of documents are indeed important for scientific documents,
+since both the content, and the meaning of words evolve over time.
 
 In DTM, data is assumed to be divided by discrete time slices. The
 topics associated with time slice $t$ evolve from the time slice
@@ -171,10 +184,13 @@ inference is accomplished via variational inference instead.
 Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
 slices. \citep{wang-2012-contin-time} This model has been used to
-predict the timestamp of documents.
-\section{Extension to Inference Methods}
-\label{sec:ext:inference}
+predict the timestamp of documents.n
 
-\section{Alternatives to LDA}
+\section{Appendix}
+\subsection{Extension to Inference Methods}
+\label{sub:ext:inference}
+
+\subsection{Alternatives to LDA}
+
 \bibliography{survey}
 \end{document}
