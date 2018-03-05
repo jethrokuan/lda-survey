@@ -115,14 +115,18 @@ Inference, Collapsed Variational Inference, and MAP estimation. Each
 of these approximation techniques have their own strength and
 shortcomings.
 
-A comprehensive look at the different inference approximation
-algorithms, shows that the performance differences can be explained
-away by setting certain smoothing hyperparameters
-\citep{asuncion-2012-smoot-infer}. Nevertheless, we will take a closer
-look at them.
+The two inference methods are briefly discussed below, and a
+comparison between them relegated to the appendix in
+~\autoref{sub:choosing-inference}.
 
-\subsection{Gibb's Sampling}
-\label{subsec:gibbs-sampling}
+\subsection{MCMC Sampling}
+\label{subsec:mcmc-sampling}
+Historically, Markov Chain Monte Carlo (MCMC) sampling has been the
+dominant technique for approximating posterior densities. In MCMC, we
+construct an ergodic Markov chain on the latent variable $z$,
+whose stationary distribution is the posterior $P( z | x)$.
+Samples are drawn from the stationary distribution, and used to
+approximate the posterior empirically.
 
 \subsection{Variational Inference}
 \label{subsec:vi}
@@ -178,17 +182,34 @@ $\pi$ maps the multinomial parameters to the mean parameters,
 $\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
 
 The Multinomial and Guassian distributions are not conjugates,
-inference via Gibb's sampling is difficult. Hence, posterior
-inference is accomplished via variational inference instead.
+inference via Gibb's sampling is difficult. Hence, posterior inference
+is accomplished via variational inference instead.
 
 Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
 slices. \citep{wang-2012-contin-time} This model has been used to
-predict the timestamp of documents.n
+predict the timestamp of documents.
 
 \section{Appendix}
-\subsection{Extension to Inference Methods}
-\label{sub:ext:inference}
+\subsection{Choosing an Inference Method}
+\label{sub:choosing-inference}
+How do we know which technique to use to approximate the posterior
+density? MCMC methods are computationally more intensive, but provide
+samples that are approximately exact from the target posterior
+density. In contrast, VI methods view the problem as an optimization
+problem, which allows it to utilize efficient learning algorithms such
+as stochastic optimization. This is much quicker to compute, and is
+suited to larger datasets.
+
+MCMC methods, however, cover a large family of sampling methods.
+Gibb's sampling requires that the prior and posterior are conjugate
+distributions. When this is not possible, such as in DTM, VI methods
+can perform better than other methods in the MCMC family.
+
+A closer look at the different inference approximation algorithms,
+however, shows that the performance differences can be explained away
+by setting certain smoothing hyperparameters
+\citep{asuncion-2012-smoot-infer}.
 
 \subsection{Alternatives to LDA}
 
