@@ -51,7 +51,7 @@ variables govern the generative process of a document.
 For example, a topic model trained on a corpora of scientific
 documents could learn topics such as ``Neural Networks'', ``Biology''
 and ``Medicine''. Topics attribute a high probability to words that
-are related to the topic. For example, a ``Neural Networks'' topic
+relate to the topic. For example, a ``Neural Networks'' topic
 would give attribute a high probability to ``classifiers'', and a low
 probability to ``bacteria''. The quotations around the topics indicate
 that the labels are human interpretations of what these topics may be.
@@ -62,17 +62,17 @@ Automatic labeling of these topics are also areas of research.
   \centering
   \includegraphics[width=0.5\textwidth]{topic_models.png}
   \caption{\label{fig:topic_model_document} According to the trained
-    topic model, the document depicted is generated from the topics
-    ``Medicine'' and ``Neural Networks''}
+    topic model, topics like ``Medicine'' and ``Neural Networks''
+    generate the colored words of the document}
 \end{figure}
 
 
 Topic modeling may discover that document in
-~\autoref{fig:topic_model_document} is related to ``Medicine'' and
+~\autoref{fig:topic_model_document} relates to ``Medicine'' and
 ``Neural Networks'', because these topics give rise to the colored
 words in the document.
 
-These abstract topics can also be viewed as a form of clustering.
+In addition, we can view these abstract topics as a form of clustering.
 Researchers are better able to navigate the large corpora of
 scientific knowledge, by exploring documents that have similar topic
 proportions.
@@ -94,7 +94,7 @@ the topic-word distribution has few words per topic. These two beliefs
 work against each other, and LDA discovers this sparsity balance,
 which gives rise to the structure of the textual data.
 
-The generative process is described as follows:
+The generative process of a document is as follows:
 
 \begin{lstlisting}[mathescape=true]
 for each document $w$ do
@@ -115,12 +115,12 @@ We can compute the probability of a word, given the LDA parameters:
 Posterior inference over the hidden variables $\theta$ and $z$ is
 intractable due to the coupling between $\theta$ and $\beta$ under the
 multinomial assumption. \citep{blei2003latent}. Hence, we rely on
-techniques for approximate inference of the posterior. These
-techniques are discussed in ~\autoref{sec:inference}.
+techniques for approximate inference of the posterior. We discuss these
+techniques in ~\autoref{sec:inference}.
 
 \subsection{Statistical Assumptions}
 \label{subsec:statistical-assumptions}
-As Mackay quips, inference cannot be made without statistical
+As Mackay quips, we cannot make inference without statistical
 assumptions. LDA makes several assumptions, some rendering it less
 suited for application to the domain of scientific documents.
 
@@ -140,12 +140,11 @@ assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
 \label{sec:inference}
 Approximating intractable probability densities is a well-studied
 problem in modern statistics. This problem arises often in Bayesian
-statistics, where inference over latent variables are required to
-compute the posterior probability densities. Many learning algorithms
-have been developed, including collapsed Gibbs Sampling, Variational
-Inference, Collapsed Variational Inference, and MAP estimation. Each
-of these approximation techniques have their own strength and
-shortcomings.
+statistics, where computing posterior probablity densities in requires
+inference over latent variables. Many learning algorithms have been
+developed, including collapsed Gibbs Sampling, Variational Inference,
+Collapsed Variational Inference, and MAP estimation. Each of these
+approximation techniques have their own strength and shortcomings.
 
 The two inference methods are briefly discussed below, and a
 comparison between them relegated to the appendix in
@@ -187,14 +186,13 @@ topic models.
 Dynamic Topic Modeling (DTM) was proposed to remove the assumption
 that documents are \textit{exchangeable}. \citep{blei2006dynamic}
 
-The order of documents are indeed important for scientific documents,
-since both the content, and the meaning of words evolve over time.
+The order of documents are important for scientific documents, since
+both the content, and the meaning of words evolve over time.
 
-In DTM, data is assumed to be divided by discrete time slices. The
-topics associated with time slice $t$ evolve from the time slice
-$t-1$. Because the Dirichlet distribution is not amenable to
-sequential modeling, the Gaussian distribution is used instead to
-model the sequence of random variables.
+In DTM, data is divided by discrete time slices. The topics associated
+with time slice $t$ evolve from the time slice $t-1$. Because the
+Dirichlet distribution is not amenable to sequential modeling, we use
+the Gaussian distribution to model the sequence of random variables.
 
 The generative process for time slice $t$ is as follows:
 
@@ -214,8 +212,8 @@ $\pi$ maps the multinomial parameters to the mean parameters,
 $\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
 
 The Multinomial and Guassian distributions are not conjugates,
-inference via Gibb's sampling is difficult. Hence, posterior inference
-is accomplished via variational inference instead.
+inference via Gibb's sampling is difficult. Hence, variational
+inference instead.
 
 Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
@@ -231,7 +229,7 @@ samples that are approximately exact from the target posterior
 density. In contrast, VI methods view the problem as an optimization
 problem, which allows it to utilize efficient learning algorithms such
 as stochastic optimization. This is much quicker to compute, and is
-suited to larger datasets.
+suited for larger datasets.
 
 MCMC methods, however, cover a large family of sampling methods.
 Gibb's sampling requires that the prior and posterior are conjugate
