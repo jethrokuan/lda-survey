@@ -4,6 +4,8 @@
 \usepackage{lmodern}
 \usepackage{courier}
 \usepackage{listings}
+\usepackage{graphicx}
+\graphicspath{ {figures/} }
 \usepackage[round]{natbib}
 
 \lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
@@ -42,13 +44,43 @@ papers more relevant to their work. One such technique is topic
 modeling.
 
 \section {Topic Modeling}
-Discovering underlying structure within scientific documents is an
-unsupervised learning problem. Generative models, such as topic
-modeling, uncover the underlying semantic structure of a document
-collection based on a hierarchical Bayesian analysis of the texts. In
-this paper, we briefly discuss the predominant model: Latent Dirichlet
-Allocation (LDA) and its variants. In addition, we explore other
-models that are not derivatives of LDA, such as the Replicated Softmax.
+Topic Modeling attempts to discover abstract topics within documents.
+Most topic models are generative models, assuming that latent
+variables govern the generative process of a document.
+
+For example, a topic model trained on a corpora of scientific
+documents could learn topics such as ``Neural Networks'', ``Biology''
+and ``Medicine''. Topics attribute a high probability to words that
+are related to the topic. For example, a ``Neural Networks'' topic
+would give attribute a high probability to ``classifiers'', and a low
+probability to ``bacteria''. The quotations around the topics indicate
+that the labels are human interpretations of what these topics may be.
+Automatic labeling of these topics are also areas of research.
+**CITE**
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{topic_models.png}
+  \caption{\label{fig:topic_model_document} According to the trained
+    topic model, the document depicted is generated from the topics
+    ``Medicine'' and ``Neural Networks''}
+\end{figure}
+
+
+Topic modeling may discover that document in
+~\autoref{fig:topic_model_document} is related to ``Medicine'' and
+``Neural Networks'', because these topics give rise to the colored
+words in the document.
+
+These abstract topics can also be viewed as a form of clustering.
+Researchers are better able to navigate the large corpora of
+scientific knowledge, by exploring documents that have similar topic
+proportions.
+
+In this paper, we briefly discuss the predominant model: Latent
+Dirichlet Allocation (LDA) and its variants. In addition, we explore
+other models that are not derivatives of LDA, such as the Replicated
+Softmax.
 
 \section{LDA}
 Latent Dirichlet analysis is widely considered to be the simplest
