@@ -1,10 +1,21 @@
 \documentclass[letterpaper]{article}
 \usepackage{aaai}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
 \usepackage{hyperref}
+\usepackage{amsmath}
 \usepackage{lmodern}
 \usepackage{courier}
 \usepackage{listings}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{bayesnet}
+\usetikzlibrary{arrows}
 \graphicspath{ {figures/} }
 \usepackage[round]{natbib}
 
@@ -87,37 +98,100 @@ Softmax.
 Latent Dirichlet analysis is widely considered to be the simplest
 topic model. LDA models each document as a mixture of topics, where a
 topic $\beta_k$ is a probability distribution over a fixed vocabulary
-of terms.
+of terms. Training LDA requires fixing the number of topics, $K$.
+We can draw the graphical model for LDA as in
+~\autoref{fig:lda_plate}.
 
-The Dirichlet distribution encourages sparsity, encoding the belief
-that the document-topic distribution has few topics per document, and
-the topic-word distribution has few words per topic. These two beliefs
-work against each other, and LDA discovers this sparsity balance,
-which gives rise to the structure of the textual data.
+At risk of being pedantic, we explain the graphical model in detail.
+$\eta$ is the topic hyperparameter, which produces a topic
+distribution $\beta_k$ of the Dirichlet family. There are a total of
+$K$ topics. Similarly, $\alpha$ is a hyperparameter that produces the
+per-document topic proportions $\theta_d$. These Dirichlet
+distributions are of dimension $K-1$, because there are a total of $K$
+topics. There are $D$ such topic proportions, where $D$ is the total
+number of documents. $Z_{d,n}$ is the per-word topic assignment, drawn
+from the particular $\theta_d$. Finally, $W_{d,n}$ is the $n$th word
+in the $d$th document, an observed variable. It is simple to see that
+$P(W_{d,n} | Z_{d,n}, \beta_{k}) = \beta_{z_{d,n}, w_{d,n}}$.
+
+A high $\alpha$ value encodes the belief that documents contain a
+mixture of many topics, rather than being largely represented by a few
+topics. Similarly, a high $\eta$ value encodes the belief that topics
+has high probability for a large number of words in the vocabulary.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \node[latent] (a) {$\alpha$};
+    \node[latent, right=of a] (t) {$\theta_d$};
+    \node[latent, right=of t] (z) {$Z_{d,n}$};
+    \node[obs, right=of z] (w) {$W_{d,n}$};
+    \node[latent, above=1.5cm of w] (b) {$\beta_k$};
+    \node[latent, left=of b] (e) {$\eta$};
+
+    % Edges
+    \edge {a} {t};
+    \edge {t} {z};
+    \edge {z} {w};
+    \edge {e} {b};
+    \edge {b} {w};
+
+    % Plates
+    \plate [inner sep=0.3cm] {pN} {(z)(w)} {$N$};
+    \plate [inner sep=0.3cm] {pM} {(t)(z)(w)(pN)} {$D$};
+    \plate [inner sep=0.3cm] {pK} {(b)} {$K$};
+  \end{tikzpicture}
+  \caption{\label{fig:lda_plate} Plate notation for LDA, a directed
+    graphical model.}
+\end{figure}
+
+We can fully specify the model, by looking at the joint distribution
+$\mathcal{J}$ of all the latent and observed variables.
+
+\begin{multline}
+ \mathcal{J} = \left( \sum_{k=1}^{K} P(\beta_k | \eta) \right) \left(
+    \sum_{d=1}^{D} P(\theta_d | \alpha) \right) \\
+  \left( \sum_{n=1}^{N} \theta_{d, Z_{d,n}} \beta_{Z_{d,n}, W_{d,n}} \right)  
+\end{multline}
 
 The generative process of a document is as follows:
 
-\begin{lstlisting}[mathescape=true]
-for each document $w$ do
-  Draw topic distribution $\theta \sim Dir(\alpha)$;
-  for each word at position $n$ do
-    Sample topic $z_n \sim Multinomial(\theta)$
-    Sample word $w_n \sim Multinomial(\beta_{z_n})$
-\end{lstlisting}
+\begin{algorithm}
+  \caption{Generative Process of LDA}\label{alg:DTM}
+  \begin{algorithmic}[1]
+    \For {each document $d$ in $D$}
+    \State {Draw topic distribution $\theta_d \sim Dir(\alpha)$}
+    \For {each word $n_d$ in $N_d$}
+    \State {Sample topic $z_{d,n} \sim Multinomial(\theta)$}
+    \State {Sample word $w_{d,n} \sim Multinomial(\beta_{z_{d,n}})$}
+    \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
 
-We can compute the probability of a word, given the LDA parameters:
+If we fix the topic distributions $\beta_{1:K}$, we can compute the
+per-document posterior $\theta$ given the document.
 
-\begin{equation}
-  p(w | \alpha, \beta) = \int_\theta \left( \sum_{n=1}^{N}
-    \sum_{z_n = 1}^{k} p(w_n | z_n, \beta)p(z_n | \theta) \right)
-  p(\theta | \alpha) d\theta
-\end{equation}
+\begin{multline}
+  P(\theta | w_{1:n}, \alpha, \beta_{1:K}) = \\ \frac{P(\theta |
+    \alpha)\prod_{n=1}^{N} P(z_n | \theta) P(w_n | z_n,
+    \beta_{1:K})}{\int_\theta P(\theta | \alpha) \prod_{n=1}^N
+    \sum_{z=1}^K P(z_n | \theta) P(w_n | z_n, \beta_{1:K})}
+\end{multline}
 
-Posterior inference over the hidden variables $\theta$ and $z$ is
-intractable due to the coupling between $\theta$ and $\beta$ under the
-multinomial assumption. \citep{blei2003latent}. Hence, we rely on
-techniques for approximate inference of the posterior. We discuss these
-techniques in ~\autoref{sec:inference}.
+
+The denominator is intractable to compute, due to the coupling
+between $\theta$ and $\beta$ under the multinomial assumption.
+\citep{blei2003latent}. Hence, we rely on techniques for approximate
+inference of the posterior. We discuss these techniques in
+~\autoref{sec:inference}.
+
+Why does LDA work? The Dirichlet distribution encourages sparsity,
+encoding the belief that the document-topic distribution has few
+topics per document, and the topic-word distribution has few words per
+topic. These two beliefs work against each other, and LDA discovers
+this sparsity balance, which gives rise to the structure of the
+textual data.
 
 \subsection{Statistical Assumptions}
 \label{subsec:statistical-assumptions}
@@ -125,13 +199,19 @@ As Mackay quips, we cannot make inference without statistical
 assumptions. LDA makes several assumptions, some rendering it less
 suited for application to the domain of scientific documents.
 
-1. The order of documents do not matter.
+LDA models documents as ``bag-of-words'': words within the document
+are interchangeable. \citep{blei2003latent} I think this is a
+reasonable assumption to make, given the task is to discover themes
+within the document.
 
-The meaning of keyphrases used in scientific literature change over
-time. For example, neural networks meant a different thing two decades
-ago.
-
-2. Bag of Words
+LDA also assumes that the order of documents do not matter.
+Exchangeability of both words and documents allows LDA to model the
+joint distribution as a mixture model. I believe this assumption to be
+invalid in the domain of scientific documents. The meaning of
+keyphrases used in scientific literature change over time. For
+example, the landscape of research neural networks is vastly different
+now, as compared to the 1990s, and LDA will fail to capture these
+differences.
 
 Variants of LDA relax these statistical assumptions, or make other
 assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
@@ -152,23 +232,28 @@ the Gaussian distribution to model the sequence of random variables.
 
 The generative process for time slice $t$ is as follows:
 
-\begin{lstlisting}[mathescape=true]
-Draw topic distribution $\beta_t | \beta_{t-1} \sim N(\beta_{t-1},
-  \sigma^2I)$;
-Draw $\alpha_t | \alpha_{t-1} \sim N\left( \alpha_{t-1}, \delta^2I
-  \right)$
-for each document $w$ do
-  Draw $\eta_{w,t} \sim N\left( \alpha_t, a^2I \right)$
-  for each word at position $n$ do:
-    Sample topic $z_{t,n} \sim Multinomial(\pi(\eta_{w,t}))$
-    Sample word $w_{t,d,n} \sim Multinomial(\beta_{t,z,n})$
-\end{lstlisting}
+\begin{algorithm}
+  \caption{Generative Process of DTM}\label{alg:DTM}
+  \begin{algorithmic}[1]
+    \State {Draw topic distribution $\beta_t | \beta_{t-1} \sim N(\beta_{t-1},
+  \sigma^2I)$}
+    \State {Draw $\alpha_t | \alpha_{t-1} \sim N\left( \alpha_{t-1}, \delta^2I
+    \right)$}
+    \For {each document $w$}
+    \State {Draw $\eta_{w,t} \sim N\left( \alpha_t, a^2I \right)$}
+    \For {each word at position $n$}
+    \State {Sample topic $z_{t,n} \sim Multinomial(\pi(\eta_{w,t}))$}
+    \State {Sample word $w_{t,d,n} \sim Multinomial(\beta_{t,z,n})$}
+    \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
 
 $\pi$ maps the multinomial parameters to the mean parameters,
 $\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
 
 The Multinomial and Guassian distributions are not conjugates,
-inference via Gibb's sampling is difficult. Hence, variational
+inference via Gibbs sampling is difficult. Hence, variational
 inference instead.
 
 Further extensions of this approach include the continuous Dynamic
@@ -198,6 +283,27 @@ construct an ergodic Markov chain on the latent variable $z$,
 whose stationary distribution is the posterior $P( z | x)$.
 Samples are drawn from the stationary distribution, and used to
 approximate the posterior empirically.
+
+In Gibbs sampling, the space of the Markov Chain is the space of the
+configurations of the hidden variables. In Gibbs sampling, the next
+state is reached by sequentially sampling all variables from the
+distribution, conditioned on all the current sampled values. After a
+``burn-in'' period, the samples would be drawn from the posterior
+distribution.
+
+\begin{algorithm}
+\caption{Gibbs Sampling}\label{alg:gibbs}
+\begin{algorithmic}[1]
+  \State $x^{0}$ $\gets$ $q(x)$
+  \For {$i = 1, 2, 3, \hdots$}
+  \For {$d = 1, 2, 3, \hdots, D$}
+  \State {$x_d^{i} \sim P(X_1 = x_1 | {X_k} = x_k^{i-1} \text{ for } k
+    = \{1..n \setminus d\})$}  
+  \EndFor
+  \EndFor
+\end{algorithmic}
+\end{algorithm}
+
 
 \subsection{Variational Inference}
 \label{subsec:vi}
@@ -232,7 +338,7 @@ as stochastic optimization. This is much quicker to compute, and is
 suited for larger datasets.
 
 MCMC methods, however, cover a large family of sampling methods.
-Gibb's sampling requires that the prior and posterior are conjugate
+Gibbs sampling requires that the prior and posterior are conjugate
 distributions. When this is not possible, such as in DTM, VI methods
 can perform better than other methods in the MCMC family.
 
