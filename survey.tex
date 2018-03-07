@@ -17,7 +17,7 @@
 \usetikzlibrary{bayesnet}
 \usetikzlibrary{arrows}
 \graphicspath{ {figures/} }
-\usepackage[round]{natbib}
+
 
 \lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
 
@@ -28,7 +28,7 @@
   /Author (Jethro Kuan)}
 \begin{document}
 \nocopyright
-\bibliographystyle{plainnat}
+\bibliographystyle{plain}
 
 \title{Topic Modeling for Scientific Documents}
 \author{Jethro Kuan \\
@@ -69,7 +69,7 @@ The quotations around the topics are to make explicit that the labels
 are human interpretations of what these topics may be. Topic modeling
 is an unsupervised problem, and is often trained on unlabeled data.
 Automatic labeling of these topics is an active area of research
-\citep{mei2007automatic, lau2011automatic}.
+\cite{mei2007automatic}, \cite{lau2011automatic}.
 
 \begin{figure}[ht]
   \centering
@@ -182,7 +182,7 @@ per-document posterior $\theta$ given the document.
 
 The denominator is intractable to compute, due to the coupling
 between $\theta$ and $\beta$ under the multinomial assumption.
-\citep{blei2003latent}. Hence, we rely on techniques for approximate
+\cite{blei2003latent}. Hence, we rely on techniques for approximate
 inference of the posterior. We discuss these techniques in
 ~\autoref{sec:inference}.
 
@@ -200,7 +200,7 @@ assumptions. LDA makes several assumptions, some rendering it less
 suited for application to the domain of scientific documents.
 
 LDA models documents as ``bag-of-words'': words within the document
-are interchangeable. \citep{blei2003latent} I think this is a
+are interchangeable. \cite{blei2003latent} I think this is a
 reasonable assumption to make, given the task is to discover themes
 within the document.
 
@@ -220,7 +220,7 @@ assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
 \section{Dynamic Topic Modeling}
 \label{sec:dtm}
 Dynamic Topic Modeling (DTM) was proposed to remove the assumption
-that documents are \textit{exchangeable}. \citep{blei2006dynamic}
+that documents are \textit{exchangeable}. \cite{blei2006dynamic}
 
 The order of documents are important for scientific documents, since
 both the content, and the meaning of words evolve over time.
@@ -258,7 +258,7 @@ inference instead.
 
 Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
-slices. \citep{wang-2012-contin-time} This model has been used to
+slices. \cite{wang-2012-contin-time} This model has been used to
 predict the timestamp of documents.
 
 \section{Inference Methods}
@@ -304,6 +304,8 @@ distribution.
 \end{algorithmic}
 \end{algorithm}
 
+A full treatment of Gibbs Sampling applied to LDA can be found in
+\cite{griffiths2002gibbs}.
 
 \subsection{Variational Inference}
 \label{subsec:vi}
@@ -345,7 +347,7 @@ can perform better than other methods in the MCMC family.
 A closer look at the different inference approximation algorithms,
 however, shows that the performance differences can be explained away
 by setting certain smoothing hyperparameters
-\citep{asuncion-2012-smoot-infer}.
+\cite{asuncion-2012-smoot-infer}.
 
 \section{Appendix}
 
