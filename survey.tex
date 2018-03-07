@@ -43,20 +43,22 @@ extract meaningful structure, empowering researchers to discover
 papers more relevant to their work. One such technique is topic
 modeling.
 
-\section {Topic Modeling}
-Topic Modeling attempts to discover abstract topics within documents.
+Topic modeling attempts to discover abstract topics within documents.
 Most topic models are generative models, assuming that latent
-variables govern the generative process of a document.
+variables govern the generative process of a document. A document is
+often modeled to be produced from a distribution of topics, and topics
+themselves are distributions over the vocabulary of the corpora.
 
-For example, a topic model trained on a corpora of scientific
-documents could learn topics such as ``Neural Networks'', ``Biology''
-and ``Medicine''. Topics attribute a high probability to words that
-relate to the topic. For example, a ``Neural Networks'' topic
-would give attribute a high probability to ``classifiers'', and a low
-probability to ``bacteria''. The quotations around the topics indicate
-that the labels are human interpretations of what these topics may be.
-Automatic labeling of these topics are also areas of research.
-**CITE**
+A topic model trained on a corpora of scientific documents could learn
+topics such as ``Neural Networks'', ``Biology'' and ``Medicine''.
+Topics attribute a high probability to words that relate to the topic.
+For example, a ``Neural Networks'' topic would give attribute a high
+probability to ``classifiers'', and a low probability to ``bacteria''.
+The quotations around the topics are to make explicit that the labels
+are human interpretations of what these topics may be. Topic modeling
+is an unsupervised problem, and is often trained on unlabeled data.
+Automatic labeling of these topics is an active area of research
+\citep{mei2007automatic, lau2011automatic}.
 
 \begin{figure}[ht]
   \centering
@@ -65,7 +67,6 @@ Automatic labeling of these topics are also areas of research.
     topic model, topics like ``Medicine'' and ``Neural Networks''
     generate the colored words of the document}
 \end{figure}
-
 
 Topic modeling may discover that document in
 ~\autoref{fig:topic_model_document} relates to ``Medicine'' and
@@ -136,6 +137,45 @@ Variants of LDA relax these statistical assumptions, or make other
 assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
 ~\autoref{sec:dtm}, and briefly mention the rest in the appendix.
 
+\section{Dynamic Topic Modeling}
+\label{sec:dtm}
+Dynamic Topic Modeling (DTM) was proposed to remove the assumption
+that documents are \textit{exchangeable}. \citep{blei2006dynamic}
+
+The order of documents are important for scientific documents, since
+both the content, and the meaning of words evolve over time.
+
+In DTM, data is divided by discrete time slices. The topics associated
+with time slice $t$ evolve from the time slice $t-1$. Because the
+Dirichlet distribution is not amenable to sequential modeling, we use
+the Gaussian distribution to model the sequence of random variables.
+
+The generative process for time slice $t$ is as follows:
+
+\begin{lstlisting}[mathescape=true]
+Draw topic distribution $\beta_t | \beta_{t-1} \sim N(\beta_{t-1},
+  \sigma^2I)$;
+Draw $\alpha_t | \alpha_{t-1} \sim N\left( \alpha_{t-1}, \delta^2I
+  \right)$
+for each document $w$ do
+  Draw $\eta_{w,t} \sim N\left( \alpha_t, a^2I \right)$
+  for each word at position $n$ do:
+    Sample topic $z_{t,n} \sim Multinomial(\pi(\eta_{w,t}))$
+    Sample word $w_{t,d,n} \sim Multinomial(\beta_{t,z,n})$
+\end{lstlisting}
+
+$\pi$ maps the multinomial parameters to the mean parameters,
+$\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
+
+The Multinomial and Guassian distributions are not conjugates,
+inference via Gibb's sampling is difficult. Hence, variational
+inference instead.
+
+Further extensions of this approach include the continuous Dynamic
+Topic Models (cDTM), which removes the discretization of the time
+slices. \citep{wang-2012-contin-time} This model has been used to
+predict the timestamp of documents.
+
 \section{Inference Methods}
 \label{sec:inference}
 Approximating intractable probability densities is a well-studied
@@ -181,46 +221,6 @@ distribution. This computational convenience comes at the expense of
 robustness, making it difficult to apply to other more complicated
 topic models.
 
-\section{Dynamic Topic Modeling}
-\label{sec:dtm}
-Dynamic Topic Modeling (DTM) was proposed to remove the assumption
-that documents are \textit{exchangeable}. \citep{blei2006dynamic}
-
-The order of documents are important for scientific documents, since
-both the content, and the meaning of words evolve over time.
-
-In DTM, data is divided by discrete time slices. The topics associated
-with time slice $t$ evolve from the time slice $t-1$. Because the
-Dirichlet distribution is not amenable to sequential modeling, we use
-the Gaussian distribution to model the sequence of random variables.
-
-The generative process for time slice $t$ is as follows:
-
-\begin{lstlisting}[mathescape=true]
-Draw topic distribution $\beta_t | \beta_{t-1} \sim N(\beta_{t-1},
-  \sigma^2I)$;
-Draw $\alpha_t | \alpha_{t-1} \sim N\left( \alpha_{t-1}, \delta^2I
-  \right)$
-for each document $w$ do
-  Draw $\eta_{w,t} \sim N\left( \alpha_t, a^2I \right)$
-  for each word at position $n$ do:
-    Sample topic $z_{t,n} \sim Multinomial(\pi(\eta_{w,t}))$
-    Sample word $w_{t,d,n} \sim Multinomial(\beta_{t,z,n})$
-\end{lstlisting}
-
-$\pi$ maps the multinomial parameters to the mean parameters,
-$\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
-
-The Multinomial and Guassian distributions are not conjugates,
-inference via Gibb's sampling is difficult. Hence, variational
-inference instead.
-
-Further extensions of this approach include the continuous Dynamic
-Topic Models (cDTM), which removes the discretization of the time
-slices. \citep{wang-2012-contin-time} This model has been used to
-predict the timestamp of documents.
-
-\section{Appendix}
 \subsection{Choosing an Inference Method}
 \label{sub:choosing-inference}
 How do we know which technique to use to approximate the posterior
@@ -240,6 +240,8 @@ A closer look at the different inference approximation algorithms,
 however, shows that the performance differences can be explained away
 by setting certain smoothing hyperparameters
 \citep{asuncion-2012-smoot-infer}.
+
+\section{Appendix}
 
 \subsection{Alternatives to LDA}
 
