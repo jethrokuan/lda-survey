@@ -160,8 +160,7 @@ has high probability for a large number of words in the vocabulary.
     \plate [inner sep=0.3cm] {pM} {(t)(z)(w)(pN)} {$D$};
     \plate [inner sep=0.3cm] {pK} {(b)} {$K$};
   \end{tikzpicture}
-  \caption{\label{fig:lda_plate} Plate notation for LDA, a directed
-    graphical model.}
+  \caption{\label{fig:lda_plate} Plate notation for LDA.}
 \end{figure}
 
 We can fully specify the model by looking at the joint distribution
@@ -343,6 +342,62 @@ The generative process for time slice $t$ is as follows:
     \EndFor
   \end{algorithmic}
 \end{algorithm}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \node[latent] (a1) {$\alpha$};
+    \node[latent, below=0.5cm of a1] (t1) {$\theta_d$};
+    \node[latent, below=0.5cm of t1] (z1) {$Z_{d,n}$};
+    \node[obs, below=0.5cm of z1] (w1) {$W_{d,n}$};
+    \node[latent, below=2cm of w1] (b1) {$\beta_{k,1}$};
+
+    \node[latent, right=1.6cm of a1] (a2) {$\alpha$};
+    \node[latent, below=0.5cm of a2] (t2) {$\theta_d$};
+    \node[latent, below=0.5cm of t2] (z2) {$Z_{d,n}$};
+    \node[obs, below=0.5cm of z2] (w2) {$W_{d,n}$};
+    \node[latent, below=2cm of w2] (b2) {$\beta_{k,2}$};
+
+    \node[latent, right=1.6cm of a2] (at) {$\alpha$};
+    \node[latent, below=0.5cm of at] (tt) {$\theta_d$};
+    \node[latent, below=0.5cm of tt] (zt) {$Z_{d,n}$};
+    \node[obs, below=0.5cm of zt] (wt) {$W_{d,n}$};
+    \node[latent, below=2cm of wt] (bt) {$\beta_{k,T}$};
+
+    % Edges
+    \edge {a1} {t1};
+    \edge {t1} {z1};
+    \edge {z1} {w1};
+    \edge {b1} {w1};
+
+    \edge {a2} {t2};
+    \edge {t2} {z2};
+    \edge {z2} {w2};
+    \edge {b2} {w2};
+
+    \edge {at} {tt};
+    \edge {tt} {zt};
+    \edge {zt} {wt};
+    \edge {bt} {wt};
+
+    \edge {b1} {b2};
+    \edge {b2} {bt};
+    \node[text, right=0.3cm of b2, yshift=0.2cm] {...};
+
+    % Plates
+    \plate [inner sep=0.3cm] {pN1} {(z1)(w1)} {$N$};
+    \plate [inner sep=0.3cm] {pM1} {(t1)(z1)(w1)(pN1)} {$D$};
+
+    \plate [inner sep=0.3cm] {pN2} {(z2)(w2)} {$N$};
+    \plate [inner sep=0.3cm] {pM2} {(t2)(z2)(w2)(pN2)} {$D$};
+
+    \plate [inner sep=0.3cm] {pNt} {(zt)(wt)} {$N$};
+    \plate [inner sep=0.3cm] {pMt} {(tt)(zt)(wt)(pNt)} {$D$};
+    
+    \plate [inner sep=0.3cm] {pK} {(b1)(b2)(bt)} {$K$};
+  \end{tikzpicture}
+  \caption{\label{fig:lda_plate} Plate notation for DTM.}
+\end{figure}
 
 Similar to CTM, the use of the logistic normal distribution causes
 variational inference to be the preferred approximate inference
