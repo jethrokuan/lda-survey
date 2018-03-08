@@ -164,7 +164,7 @@ has high probability for a large number of words in the vocabulary.
     graphical model.}
 \end{figure}
 
-We can fully specify the model, by looking at the joint distribution
+We can fully specify the model by looking at the joint distribution
 $\mathcal{J}$ of all the latent and observed variables.
 
 \begin{multline}
@@ -176,7 +176,7 @@ $\mathcal{J}$ of all the latent and observed variables.
 The generative process of a document is as follows:
 
 \begin{algorithm}
-  \caption{Generative Process of LDA}\label{alg:DTM}
+  \caption{Generative Process of LDA}\label{alg:LDA}
   \begin{algorithmic}[1]
     \For {each document $d$ in $D$}
     \State {Draw topic distribution $\theta_d \sim Dir(\alpha)$}
@@ -232,9 +232,85 @@ example, the landscape of research neural networks is vastly different
 now, as compared to the 1990s, and LDA will fail to capture these
 differences.
 
+The use of the Dirichlet distribution also encodes statistical
+assumptions about the correlation between topics. Under the Dirichlet,
+components of $\theta_d$ are nearly independent. This leads to the
+modeling assumption that the presence of one topic is not correlated
+with the presence of another \cite{blei2007correlated}. As explained
+by \citeauthor{blei2007correlated}, this assumption is strong and
+unrealistic in the domain of scientific documents. An article about
+genetics is also highly likely to be about health and disease, and
+unlikely to be about astronomy \cite{blei2007correlated}.
+
 Variants of LDA relax these statistical assumptions, or make other
 assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
-~\autoref{sec:dtm}, and briefly mention the rest in the appendix.
+~\autoref{sec:dtm} and Correlated Topic Modeling(CTM), and briefly
+mention the rest in the appendix.
+
+\section{Correlated Topic Modeling}
+\label{sec:ctm}
+The Correlated Topic Model (CTM) addresses the model assumption that
+topic proportions are not correlated. In scientific documents, this
+assumption is unlikely to hold true.
+
+Instead of drawing from a Dirichlet distribution, the CTM uses a
+logistic normal distribution. CTM draws a real valued random vector
+from a multivariate Gaussian, and maps it to the simplex to obtain a
+multinomial parameter \cite{blei2007correlated}. The $K \times K$
+covariance matrix $\Sigma$ models dependencies between the topics.
+This tweak is evident in the generative process shown in Algorithm
+~\autoref{alg:CTM}, contrasting it with Algorithm ~\autoref{alg:LDA}.
+
+\begin{algorithm}
+  \caption{Generative Process of CTM}\label{alg:CTM}
+  \begin{algorithmic}[1]
+    \For {each document $d$ in $D$}
+    \State {Draw topic distribution $\beta_d \sim \mathcal{N}(\mu, \Sigma)$}
+    \For {each word $n_d$ in $N_d$}
+    \State {Sample topic $z_{d,n} \sim Multinomial(\pi(\beta_d))$}
+    \State {Sample word $w_{d,n} \sim Multinomial(\beta_{z_{d,n}})$}
+    \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+$\pi$ maps the multinomial parameters to the mean parameters,
+$\pi\left( x \right) = \frac{e^x}{\sum_{i} e^{x_i}}$
+
+We can also visualize CTM with a graphical model.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \node[latent] (S) {$\Sigma$};
+    \node[latent, left= of t, yshift=-1cm] (m) {$\mu$};
+    \node[latent, right= of S, yshift=-0.5cm] (t) {$\theta_d$};
+    \node[latent, right=of t] (z) {$Z_{d,n}$};
+    \node[obs, right=of z] (w) {$W_{d,n}$};
+    \node[latent, above=1.5cm of w] (b) {$\beta_k$};
+    \node[latent, left=of b] (e) {$\eta$};
+
+    % Edges
+    \edge {S} {t};
+    \edge {m} {t};
+    \edge {t} {z};
+    \edge {z} {w};
+    \edge {e} {b};
+    \edge {b} {w};
+
+    % Plates
+    \plate [inner sep=0.3cm] {pN} {(z)(w)} {$N$};
+    \plate [inner sep=0.3cm] {pM} {(t)(z)(w)(pN)} {$D$};
+    \plate [inner sep=0.3cm] {pK} {(b)} {$K$};
+  \end{tikzpicture}
+  \caption{\label{fig:ctm_plate} Plate notation for CTM.}
+\end{figure}
+
+
+The Multinomial and Guassian distributions are not conjugate
+distributions. This causes inference via Gibbs sampling is difficult.
+Hence, variational inference is used instead.
+
 
 \section{Dynamic Topic Modeling}
 \label{sec:dtm}
@@ -268,12 +344,9 @@ The generative process for time slice $t$ is as follows:
   \end{algorithmic}
 \end{algorithm}
 
-$\pi$ maps the multinomial parameters to the mean parameters,
-$\pi\left( \beta_{k,t} \right)_w = \frac{exp(\beta_{k,t,w})}{\sum_w exp\left( \beta_{k,t,w} \right)}$
-
-The Multinomial and Guassian distributions are not conjugates,
-inference via Gibbs sampling is difficult. Hence, variational
-inference instead.
+Similar to CTM, the use of the logistic normal distribution causes
+variational inference to be the preferred approximate inference
+technique.
 
 Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
@@ -338,11 +411,40 @@ A full treatment of Gibbs Sampling applied to LDA can be found in
 
 \subsection{Variational Inference}
 \label{subsec:vi}
+In variational inference, the posterior distribution over a set of
+unobserved variables $p(Z|H)$ is approximated by a distribution
+$q(Z)$, selected to be in a family that can approximately model the
+true posterior. Inference is performed by minimizing the distance
+between $p(Z|H)$ and $q(Z)$. One common metric used is the
+KL-divergence. Here, we discuss variational inference for LDA.
+
 Mean field variational inference (MFVI) breaks the coupling between
 $\theta$ and $z$ by introducing free variational parameters $\gamma$
 over $\theta$ and $\phi$ over $z$ and dropping the edges between them.
 This results in an approximate posterior $q(\theta, z | \gamma, \phi)
-= q_\gamma(\theta)\prod_nq_\phi(z_n)$.
+= q_\gamma(\theta)\prod_nq_\phi(z_n)$. This is illustrated in the
+graphical model in \autoref{fig:lda_vi}.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \node[latent] (y) {$\gamma$};
+    \node[latent, below=of y] (t) {$\theta$};
+    \node[latent, right=of y] (p) {$\phi$};
+    \node[latent, below=of p] (z) {$z$};
+
+    % Edges
+    \edge {y} {t};
+    \edge {p} {z};
+    
+    % Plates
+    \plate [inner sep=0.3cm, yshift=0.1cm] {pN} {(p)(z)} {$N$};
+    {\tikzset{plate caption/.append style={right=0.4cm of #1.south
+          east}} \plate [inner sep=0.6cm] {pD} {(y)(t)(p)(z)} {$D$}};
+  \end{tikzpicture}
+  \caption{\label{fig:lda_vi} Graphical model for the approximate
+    posterior for variational inference.}
+\end{figure}
 
 To best approximate the true posterior, we frame it as an optimization
 problem, minimizing $L$ where:
@@ -356,7 +458,7 @@ This optimization has closed form coordinate descent equations for
 LDA, because the Dirichlet is conjugate to the Multinomial
 distribution. This computational convenience comes at the expense of
 robustness, making it difficult to apply to other more complicated
-topic models.
+topic models \cite{blei2003latent}. 
 
 \subsection{Choosing an Inference Method}
 \label{sub:choosing-inference}
