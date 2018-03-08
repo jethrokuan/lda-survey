@@ -2,6 +2,8 @@
 \usepackage{aaai}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\usepackage[numbers]{natbib}
+\bibliographystyle{plainnat}
 
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -18,7 +20,6 @@
 \usetikzlibrary{arrows}
 \graphicspath{ {figures/} }
 
-
 \lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
 
 \setlength{\pdfpagewidth}{8.5in}
@@ -28,7 +29,6 @@
   /Author (Jethro Kuan)}
 \begin{document}
 \nocopyright
-\bibliographystyle{plain}
 
 \title{Topic Modeling for Scientific Documents}
 \author{Jethro Kuan \\
@@ -48,17 +48,22 @@
 
 \section{Introduction}
 In this information age, the availability of knowledge is
-insufficiently met with the tools to navigate it. Tools like Semantic
-Scholar use machine learning to process scientific documents and
-extract meaningful structure, empowering researchers to discover
-papers more relevant to their work. One such technique is topic
-modeling.
+insufficiently met with the tools to navigate it. Archives such as
+Arxiv see an exponential growth in the number of documents being
+hosted. Developing new tools for browsing, and searching these
+documents is a technological challenge that calls for research in
+statistical modeling.
+
+Rather than relying on keyword matching, tools like Semantic Scholar
+use machine learning to process scientific documents and discover
+meaningful structure, empowering researchers to discover papers more
+relevant to their work. One such statistical modeling technique is
+topic modeling.
 
 Topic modeling attempts to discover abstract topics within documents.
-Most topic models are generative models, assuming that latent
-variables govern the generative process of a document. A document is
-often modeled to be produced from a distribution of topics, and topics
-themselves are distributions over the vocabulary of the corpora.
+Topic models capture the intuition that if a document is of a
+particular topic, then words from the topic should appear more
+frequently.
 
 A topic model trained on a corpora of scientific documents could learn
 topics such as ``Neural Networks'', ``Biology'' and ``Medicine''.
@@ -89,13 +94,27 @@ Researchers are better able to navigate the large corpora of
 scientific knowledge, by exploring documents that have similar topic
 proportions.
 
+The earliest known technique for topic modeling is Latent Semantic
+Indexing (LSI) \cite{deerwester1990indexing}. The first probabilistic
+approach, Probabilistic Latent Semantic Analysis (pLSA), was proposed
+in 1999 \cite{hofmann1999probabilistic}. It was only in 2003 when
+\citeauthor{blei2003latent} introduced Latent Dirchlet Allocation
+(LDA), which remains to this date the predominant technique for topic
+modeling.
+
+Most of the state-of-the-art topic models are generative models,
+assuming that latent variables govern the generative process of a
+document. According to these models, a document is produced from a
+distribution of topics, and the topics themselves are distributions
+over the vocabulary of the corpora.
+
 In this paper, we briefly discuss the predominant model: Latent
 Dirichlet Allocation (LDA) and its variants. In addition, we explore
 other models that are not derivatives of LDA, such as the Replicated
 Softmax.
 
 \section{LDA}
-Latent Dirichlet analysis is widely considered to be the simplest
+Latent Dirichlet Allocation is widely considered to be the simplest
 topic model. LDA models each document as a mixture of topics, where a
 topic $\beta_k$ is a probability distribution over a fixed vocabulary
 of terms. Training LDA requires fixing the number of topics, $K$.
@@ -260,6 +279,16 @@ Further extensions of this approach include the continuous Dynamic
 Topic Models (cDTM), which removes the discretization of the time
 slices. \cite{wang-2012-contin-time} This model has been used to
 predict the timestamp of documents.
+
+\section{Critique of Models}
+One important component we have yet to discuss is the choice of $K$,
+the number of topics used to model the corpora. Notice that the value
+of $K$ affects model complexity. In both LDA and DTM, documents are
+modeled as mixtures of $K$ distributions. The choice of $K$ is
+therefore also an important parameter that requires tuning. This is a
+pitfall of parametric models. A misfit between the complexity of the
+model and the amount and quality of data available can lead to severe
+underfitting or overfitting \cite{teh2011dirichlet}.
 
 \section{Inference Methods}
 \label{sec:inference}
