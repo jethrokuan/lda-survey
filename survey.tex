@@ -382,7 +382,7 @@ The generative process for time slice $t$ is as follows:
 
     \edge {b1} {b2};
     \edge {b2} {bt};
-    \node[text, right=0.3cm of b2, yshift=0.2cm] {...};
+    \node[text=, right=0.3cm of b2, yshift=0.2cm] {...};
 
     % Plates
     \plate [inner sep=0.3cm] {pN1} {(z1)(w1)} {$N$};
@@ -408,15 +408,27 @@ Topic Models (cDTM), which removes the discretization of the time
 slices. \cite{wang-2012-contin-time} This model has been used to
 predict the timestamp of documents.
 
-\section{Critique of Models}
+\section{Bayesian Non-parametric Models}
 One important component we have yet to discuss is the choice of $K$,
 the number of topics used to model the corpora. Notice that the value
-of $K$ affects model complexity. In both LDA and DTM, documents are
-modeled as mixtures of $K$ distributions. The choice of $K$ is
-therefore also an important parameter that requires tuning. This is a
-pitfall of parametric models. A misfit between the complexity of the
-model and the amount and quality of data available can lead to severe
-underfitting or overfitting \cite{teh2011dirichlet}.
+of $K$ affects model complexity. LDA, CTM and DTM are Bayesian
+parametric models: documents are modeled as mixtures of $K$
+distributions. The choice of $K$ is therefore also an important
+parameter that requires tuning. This is a pitfall of parametric
+models. A misfit between the complexity of the model and the amount
+and quality of data available can lead to severe underfitting or
+overfitting \cite{teh2011dirichlet}.
+
+Bayesian non-parametric models provide an elegant solution to this
+issue. The non-parametric approach allows the model to grow in
+complexity as more data is observed. These non-parametric models have
+also been extended to hierarchies of topics, moving from more general
+to more concrete \cite{blei2010nested}.
+
+Bayesian non-parametric models has seen some success in
+recommendation systems \cite{gopalan2014bayesian}, a popular modeling
+technique in production systems because of its ability to adapt with
+growing data size.
 
 \section{Inference Methods}
 \label{sec:inference}
@@ -537,10 +549,42 @@ by setting certain smoothing hyperparameters
 
 \section{Experimental Results}
 
-\section{Means of Evaluation}
+\section{Critique of Models and Results}
+Both DTM and CTM show that LDA is promising as a base model that can
+be adapted to the problem domain. This can be attributed to the
+simplicity of LDA. Bayesian non-parametric models
+
+The evaluation of topic models is also an area of research that is
+relatively unexplored. The unsupervised nature of topic modeling makes
+model selection difficult: there are no gold labels for topics, and
+document topic proportions. The most common evaluation metric is the
+probability of held-out documents given a trained model
+\cite{wallach2009evaluation}, and we refer you to
+\citeauthor{wallach2009evaluation} for a full treatment .
+
+\section{Conclusion}
+In this paper, we have discussed the importance of topic modeling, and
+the opportunities it presents in the domain of scientific documents.
+LDA is widely regarded as the simplest topic model, which operates on
+the intuition that a document has few topics, and a topic has few
+words. LDA is popular as a building block for other topic models. We
+discussed the statistical assumptions that LDA makes, and how
+appropriate they are in the context of scientific documents. CTM and
+DTM were introduced in detail, in the context of relaxing statistical
+assumptions made by LDA. We also discussed the difficulties faced in
+evaluating the models, that arise from the unsupervised nature of the
+problem.
+
+To compare the model outputs, we trained the three models on the ACM
+dataset, and presented the topic distributions of each model.
 
 \section{Future Work}
-- RBMs
+The topic models we have surveyed are directed graphical models.
+Despite the recent discoveries in deep learning, LDA, which is over a
+decade old, has not yet been replaced as the mainstay for topic
+modeling. Deep generative models in particular hold much promise, and
+is seeing some recent development \cite{hinton2009replicated,
+  larochelle2012neural}. In future we hope to explore this area.
 
 \bibliography{survey}
 \end{document}
