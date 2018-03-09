@@ -78,6 +78,11 @@ is an unsupervised problem, and is often trained on unlabeled data.
 Automatic labeling of these topics is an active area of research
 \cite{mei2007automatic}, \cite{lau2011automatic}.
 
+We can also view these abstract topics as a form of clustering.
+Researchers are better able to navigate the large corpora of
+scientific knowledge, by exploring documents that have similar topic
+proportions.
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.5\textwidth]{topic_models.png}
@@ -86,34 +91,28 @@ Automatic labeling of these topics is an active area of research
     generate the colored words of the document}
 \end{figure}
 
-Topic modeling may discover that document in
+Suppose we train a topic model on a corpora of scientific documents.
+The trained model would discover that the document in
 ~\autoref{fig:topic_model_document} relates to ``Medicine'' and
-``Neural Networks'', because these topics give rise to the colored
-words in the document.
-
-In addition, we can view these abstract topics as a form of clustering.
-Researchers are better able to navigate the large corpora of
-scientific knowledge, by exploring documents that have similar topic
-proportions.
+``Neural Networks'', because of the frequent appearance of highly
+probable words in these topics.
 
 The earliest known technique for topic modeling is Latent Semantic
 Indexing (LSI) \cite{deerwester1990indexing}. The first probabilistic
 approach, Probabilistic Latent Semantic Analysis (pLSA), was proposed
 in 1999 \cite{hofmann1999probabilistic}. It was only in 2003 when
-\citeauthor{blei2003latent} introduced Latent Dirchlet Allocation
+\citeauthor{blei2003latent} introduced Latent Dirichlet Allocation
 (LDA), which remains to this date the predominant technique for topic
 modeling.
 
-Most of the state-of-the-art topic models are generative models,
-assuming that latent variables govern the generative process of a
-document. According to these models, a document is produced from a
-distribution of topics, and the topics themselves are distributions
-over the vocabulary of the corpora.
+Most of the state-of-the-art topic models are generative models. In
+generative models, latent variables govern the generative process of a
+document. A document is produced from a distribution of topics, and
+the topics are distributions over the vocabulary of the corpora.
 
-In this paper, we briefly discuss the predominant model: Latent
-Dirichlet Allocation (LDA) and its variants. In addition, we explore
-other models that are not derivatives of LDA, such as the Replicated
-Softmax.
+In this paper, we survey the landscape of probabilistic topic models.
+LDA and two of its variants are discussed in detail. We train these
+models on a dataset of scientific documents, and present our results.
 
 \section{LDA}
 Latent Dirichlet Allocation is widely considered to be the simplest
@@ -123,16 +122,16 @@ of terms. Training LDA requires fixing the number of topics, $K$.
 We can draw the graphical model for LDA as in
 ~\autoref{fig:lda_plate}.
 
-At risk of being pedantic, we explain the graphical model in detail.
-$\eta$ is the topic hyperparameter, which produces a topic
-distribution $\beta_k$ of the Dirichlet family. There are a total of
-$K$ topics. Similarly, $\alpha$ is a hyperparameter that produces the
-per-document topic proportions $\theta_d$. These Dirichlet
-distributions are of dimension $K-1$, because there are a total of $K$
-topics. There are $D$ such topic proportions, where $D$ is the total
-number of documents. $Z_{d,n}$ is the per-word topic assignment, drawn
-from the particular $\theta_d$. Finally, $W_{d,n}$ is the $n$th word
-in the $d$th document, an observed variable. It is simple to see that
+At the risk of being pedantic, we explain the graphical model. $\eta$
+is the topic hyperparameter, which produces a topic distribution
+$\beta_k$ of the Dirichlet family. There are a total of $K$ topics.
+Similarly, $\alpha$ is a hyperparameter that produces the per-document
+topic proportions $\theta_d$. These Dirichlet distributions are of
+dimension $K-1$, because there are a total of $K$ topics. There are
+$D$ such topic proportions, where $D$ is the total number of
+documents. $Z_{d,n}$ is the per-word topic assignment, drawn from the
+particular $\theta_d$. Finally, $W_{d,n}$ is the $n$th word in the
+$d$th document, an observed variable. It is simple to see that
 $P(W_{d,n} | Z_{d,n}, \beta_{k}) = \beta_{z_{d,n}, w_{d,n}}$.
 
 A high $\alpha$ value encodes the belief that documents contain a
@@ -215,16 +214,16 @@ textual data.
 
 \subsection{Statistical Assumptions}
 \label{subsec:statistical-assumptions}
-As Mackay quips, we cannot make inference without statistical
-assumptions. LDA makes several assumptions, some rendering it less
-suited for application to the domain of scientific documents.
+In Bayesian statistics, we cannot make inference without statistical
+assumptions. LDA makes several statistical assumptions, which we
+discuss below.
 
-LDA models documents as ``bag-of-words'': words within the document
-are interchangeable. \cite{blei2003latent} I think this is a
-reasonable assumption to make, given the task is to discover themes
+First, LDA models documents as ``bag-of-words'': words within the
+document are exchangeable. \cite{blei2003latent} I think this is a
+reasonable assumption to make, if the task is to discover themes
 within the document.
 
-LDA also assumes that the order of documents do not matter.
+Second, LDA assumes that the order of documents do not matter.
 Exchangeability of both words and documents allows LDA to model the
 joint distribution as a mixture model. I believe this assumption to be
 invalid in the domain of scientific documents. The meaning of
@@ -233,7 +232,7 @@ example, the landscape of research neural networks is vastly different
 now, as compared to the 1990s, and LDA will fail to capture these
 differences.
 
-The use of the Dirichlet distribution also encodes statistical
+Third, the use of the Dirichlet distribution also encodes statistical
 assumptions about the correlation between topics. Under the Dirichlet,
 components of $\theta_d$ are nearly independent. This leads to the
 modeling assumption that the presence of one topic is not correlated
@@ -311,7 +310,6 @@ We can also visualize CTM with a graphical model.
 The Multinomial and Guassian distributions are not conjugate
 distributions. This causes inference via Gibbs sampling is difficult.
 Hence, variational inference is used instead.
-
 
 \section{Dynamic Topic Modeling}
 \label{sec:dtm}
@@ -518,10 +516,11 @@ graphical model in \autoref{fig:lda_vi}.
 To best approximate the true posterior, we frame it as an optimization
 problem, minimizing $L$ where:
 
-\begin{equation}
+\begin{multline}
 L(\gamma, \phi | \alpha, \beta) = D_{KL}\left[ q(\theta, z | \gamma,
-  \phi) || p(\theta, z | \alpha, \beta) \right] - \log p(w | \alpha, \beta)
-\end{equation}
+  \phi) || p(\theta, z | \alpha, \beta) \right] \\
+- \log p(w | \alpha, \beta)
+\end{multline}
 
 This optimization has closed form coordinate descent equations for
 LDA, because the Dirichlet is conjugate to the Multinomial
