@@ -82,8 +82,10 @@ Automatic labeling of these topics is an active area of research
 
 We can also view these abstract topics as a form of clustering.
 Researchers are better able to navigate the large corpora of
-scientific knowledge, by exploring documents that have similar topic
-proportions.
+scientific knowledge, by looking at documents that have similar topic
+proportions\footnote{A browsable 100-topic model estimated from the
+  Journal \textit{Science} can be explored at
+  \url{http://www.cs.cmu.edu/~lemur/science/topics.html}}.
 
 \begin{figure}[ht]
   \centering
@@ -100,12 +102,14 @@ The trained model would discover that the document in
 probable words in these topics.
 
 The earliest known technique for topic modeling is Latent Semantic
-Indexing (LSI) \cite{deerwester1990indexing}. The first probabilistic
-approach, Probabilistic Latent Semantic Analysis (pLSA), was proposed
-in 1999 \cite{hofmann1999probabilistic}. It was only in 2003 when
+Indexing (LSI) \cite{deerwester1990indexing}. LSI uses Singular Value
+Decomposition (SVD) to determine relationships between words in
+unstructured text. The first probabilistic approach, Probabilistic
+Latent Semantic Analysis (pLSA), was proposed in 1999
+\cite{hofmann1999probabilistic}. It was only in 2003 when
 \citeauthor{blei2003latent} introduced Latent Dirichlet Allocation
-(LDA), which remains to this date the predominant technique for topic
-modeling.
+(LDA), which remains the predominant technique for topic
+modeling to date.
 
 Most of the state-of-the-art topic models are generative models. In
 generative models, latent variables govern the generative process of a
@@ -118,22 +122,22 @@ models on a dataset of scientific documents, and present our results.
 
 \section{LDA}
 Latent Dirichlet Allocation is widely considered to be the simplest
-topic model. LDA models each document as a mixture of topics, where a
-topic $\beta_k$ is a probability distribution over a fixed vocabulary
-of terms. Training LDA requires fixing the number of topics, $K$.
-We can draw the graphical model for LDA as in
-~\autoref{fig:lda_plate}.
+topic model. LDA models each document as a mixture of $K$ topics,
+where a topic $\beta_k$ is a probability distribution over a fixed
+vocabulary of terms. LDA is a directed graphical model, and can be
+represented in plate notation like in ~\autoref{fig:lda_plate}.
 
-At the risk of being pedantic, we explain the graphical model. $\eta$
-is the topic hyperparameter, which produces a topic distribution
-$\beta_k$ of the Dirichlet family. There are a total of $K$ topics.
-Similarly, $\alpha$ is a hyperparameter that produces the per-document
-topic proportions $\theta_d$. These Dirichlet distributions are of
-dimension $K-1$, because there are a total of $K$ topics. There are
-$D$ such topic proportions, where $D$ is the total number of
-documents. $Z_{d,n}$ is the per-word topic assignment, drawn from the
-particular $\theta_d$. Finally, $W_{d,n}$ is the $n$th word in the
-$d$th document, an observed variable. It is simple to see that
+At the risk of being pedantic, we explain the components of the
+graphical model. $\eta$ is the topic hyperparameter, which produces a
+topic distribution $\beta_k$ of the Dirichlet family. There are a
+total of $K$ topics. $\alpha$ is a hyperparameter that
+produces the per-document topic proportions $\theta_d$. These
+Dirichlet distributions are of dimension $K-1$, because there are a
+total of $K$ topics. There are $D$ such topic proportions, where $D$
+is the total number of documents. $Z_{d,n}$ is the per-word topic
+assignment, drawn from the particular $\theta_d$. Finally, $W_{d,n}$
+is the $n$th word in the $d$th document, an observed variable. It is
+simple to see that
 $P(W_{d,n} | Z_{d,n}, \beta_{k}) = \beta_{z_{d,n}, w_{d,n}}$.
 
 A high $\alpha$ value encodes the belief that documents contain a
@@ -166,8 +170,8 @@ has high probability for a large number of words in the vocabulary.
   \caption{\label{fig:lda_plate} Plate notation for LDA.}
 \end{figure}
 
-We can fully specify the model by looking at the joint distribution
-$\mathcal{J}$ of all the latent and observed variables.
+The model is fully specified by its joint distribution $\mathcal{J}$
+of all the latent and observed variables.
 
 \begin{multline}
  \mathcal{J} = \left( \sum_{k=1}^{K} P(\beta_k | \eta) \right) \left(
@@ -244,22 +248,16 @@ unrealistic in the domain of scientific documents. An article about
 genetics is also highly likely to be about health and disease, and
 unlikely to be about astronomy \cite{blei2007correlated}.
 
-Variants of LDA relax these statistical assumptions, or make other
-assumptions in place. We discuss Dynamic Topic Modeling (DTM) in
-~\autoref{sec:dtm} and Correlated Topic Modeling(CTM), and briefly
-mention the rest in the appendix.
-
 \section{Correlated Topic Modeling}
 \label{sec:ctm}
 The Correlated Topic Model (CTM) addresses the model assumption that
-topic proportions are not correlated. In scientific documents, this
-assumption is unlikely to hold true.
+topic proportions are not correlated.
 
 Instead of drawing from a Dirichlet distribution, the CTM uses a
 logistic normal distribution. CTM draws a real valued random vector
 from a multivariate Gaussian, and maps it to the simplex to obtain a
 multinomial parameter \cite{blei2007correlated}. The $K \times K$
-covariance matrix $\Sigma$ models dependencies between the topics.
+covariance matrix $\Sigma$ models correlations between the topics.
 This tweak is evident in the generative process shown in Algorithm
 ~\autoref{alg:CTM}, contrasting it with Algorithm ~\autoref{alg:LDA}.
 
@@ -278,8 +276,6 @@ This tweak is evident in the generative process shown in Algorithm
 
 $\pi$ maps the multinomial parameters to the mean parameters,
 $\pi\left( x \right) = \frac{e^x}{\sum_{i} e^{x_i}}$
-
-We can also visualize CTM with a graphical model.
 
 \begin{figure}[ht]
   \centering
@@ -318,7 +314,7 @@ and variational inference is used instead.
 Dynamic Topic Modeling (DTM) was proposed to remove the assumption
 that documents are \textit{exchangeable}. \cite{blei2006dynamic}
 
-The order of documents are important for scientific documents, since
+The order of documents is important for scientific documents, since
 both the content, and the meaning of words evolve over time.
 
 In DTM, data is divided by discrete time slices. The topics associated
@@ -424,27 +420,22 @@ overfitting \cite{teh2011dirichlet}.
 Bayesian non-parametric models provide an elegant solution to this
 issue. The non-parametric approach allows the model to grow in
 complexity as more data is observed. These non-parametric models have
-also been extended to hierarchies of topics, moving from more general
-to more concrete \cite{blei2010nested}.
+also been extended to hierarchies of topics \cite{blei2010nested}. The
+granularity of topics can be helpful in some tasks, such as trend
+detection.
 
-Bayesian non-parametric models has seen some success in
-recommendation systems \cite{gopalan2014bayesian}, a popular modeling
-technique in production systems because of its ability to adapt with
-growing data size.
+Bayesian non-parametric models has seen some success in recommendation
+systems \cite{gopalan2014bayesian}, a popular modeling technique in
+production systems because of its ability to adapt with growing data
+size.
 
 \section{Inference Methods}
 \label{sec:inference}
 Approximating intractable probability densities is a well-studied
 problem in modern statistics. This problem arises often in Bayesian
 statistics, where computing posterior probablity densities in requires
-inference over latent variables. Many learning algorithms have been
-developed, including collapsed Gibbs Sampling, Variational Inference,
-Collapsed Variational Inference, and MAP estimation. Each of these
-approximation techniques have their own strength and shortcomings.
-
-The two inference methods are briefly discussed below, and a
-comparison between them relegated to the appendix in
-~\autoref{sub:choosing-inference}.
+inference over latent variables. The two main families of inference
+methods are MCMC sampling and Variational Inference.
 
 \subsection{MCMC Sampling}
 \label{subsec:mcmc-sampling}
@@ -456,11 +447,10 @@ Samples are drawn from the stationary distribution, and used to
 approximate the posterior empirically.
 
 In Gibbs sampling, the space of the Markov Chain is the space of the
-configurations of the hidden variables. In Gibbs sampling, the next
-state is reached by sequentially sampling all variables from the
-distribution, conditioned on all the current sampled values. After a
-``burn-in'' period, the samples would be drawn from the posterior
-distribution.
+configurations of the hidden variables. The next state is reached by
+sequentially sampling all variables from the distribution, conditioned
+on all the current sampled values. After a ``burn-in'' period, the
+samples would be drawn from the posterior distribution.
 
 \begin{algorithm}
 \caption{Gibbs Sampling}\label{alg:gibbs}
