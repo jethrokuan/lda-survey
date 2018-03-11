@@ -223,29 +223,31 @@ In Bayesian statistics, we cannot make inference without statistical
 assumptions. LDA makes several statistical assumptions, which we
 discuss below.
 
-First, LDA models documents as ``bag-of-words'': words within the
-document are exchangeable. \cite{blei2003latent} I think this is a
-reasonable assumption to make, if the task is to discover themes
-within the document.
+First, LDA models documents as ``bag-of-words''. In a ``bag-of-words''
+model, words within the document are exchangeable
+\cite{blei2003latent}. I think this is a reasonable assumption to
+make, if the task is to discover themes within the document.
 
-Second, LDA assumes that the order of documents do not matter.
+Second, LDA assumes that the order of documents does not matter.
 Exchangeability of both words and documents allows LDA to model the
 joint distribution as a mixture model. I believe this assumption to be
 invalid in the domain of scientific documents. The meaning of
 keyphrases used in scientific literature change over time. For
 example, the landscape of research neural networks is vastly different
 now, as compared to the 1990s, and LDA will fail to capture these
-differences.
+differences. This is the motivation of the Dynamic Topic Model (DTM),
+discussed in ~\autoref{sec:dtm}.
 
 Third, the use of the Dirichlet distribution also encodes statistical
 assumptions about the correlation between topics. Under the Dirichlet,
 components of $\theta_d$ are nearly independent. This leads to the
 modeling assumption that the presence of one topic is not correlated
-with the presence of another \cite{blei2007correlated}. As explained
-by \citeauthor{blei2007correlated}, this assumption is strong and
+with the presence of another \cite{blei2005correlated}. As explained
+by \citeauthor{blei2005correlated}, this assumption is strong and
 unrealistic in the domain of scientific documents. An article about
 genetics is also highly likely to be about health and disease, and
-unlikely to be about astronomy \cite{blei2007correlated}.
+unlikely to be about astronomy. This is the motivation of the
+Correlated Topic Model (CTM), which we discuss next.
 
 \section{Correlated Topic Modeling}
 \label{sec:ctm}
@@ -255,7 +257,7 @@ topic proportions are not correlated.
 Instead of drawing from a Dirichlet distribution, the CTM uses a
 logistic normal distribution. CTM draws a real valued random vector
 from a multivariate Gaussian, and maps it to the simplex to obtain a
-multinomial parameter \cite{blei2007correlated}. The $K \times K$
+multinomial parameter \cite{blei2005correlated}. The $K \times K$
 covariance matrix $\Sigma$ models correlations between the topics.
 This tweak is evident in the generative process shown in Algorithm
 ~\autoref{alg:CTM}, contrasting it with Algorithm ~\autoref{alg:LDA}.
@@ -405,6 +407,12 @@ Topic Models (cDTM), which removes the discretization of the time
 slices \cite{wang-2012-contin-time}. This model has been used to
 predict the timestamp of documents.
 
+Both DTM and CTM show that the simplicity of LDA makes it promising as
+a base model that can be adapted to the problem domain. CTM and DTM both
+relax assumptions that should lead to improvements in the topic
+distributions generated. The evaluation of topic models is discussed
+in ~\autoref{sec:evaluation}.
+
 \section{Bayesian Non-parametric Models}
 One important component we have yet to discuss is the choice of $K$,
 the number of topics used to model the corpora. Notice that the value
@@ -519,12 +527,6 @@ distribution. This computational convenience comes at the expense of
 robustness, making it difficult to apply to other more complicated
 topic models \cite{blei2003latent}.
 
-Both DTM and CTM show that the simplicity of LDA makes it promising as
-a base model that can be adapted to the problem domain. CTM and DTM both
-relax assumptions that should lead to improvements in the topic
-distributions generated. The evaluation of topic models is discussed
-in ~\autoref{sec:evaluation}.
-
 \subsection{Choosing an Inference Method}
 \label{sub:choosing-inference}
 How do we know which technique to use to approximate the posterior
@@ -555,17 +557,16 @@ Jupyter notebooks for data exploration and model training can be found
 here
 \footnote{\url{https://github.com/jethrokuan/data-science-notebooks/tree/master/04\%20-\%20Topic\%20Modeling\%20(UROP)/nips-papers}}.
 
-We choose 2 models to train, LDA and DTM, because their
-implementations are readily available in Gensim, a popular topic
-modeling library.
+We trained LDA and DTM, using implementations readily available within
+Gensim, a popular topic modeling library.
 
 To clean the raw text, we lemmatize, remove stop words, and keep only
 the nouns. After removing tokens that rarely occur, or occur too often
 to be meaningful, the corpus of 7241 documents produced a dictionary
 of 54254 unique tokens. We set $K = 30$ topics.
 
-LDA trained in 65 seconds, and the full results are shown in the
-appendix (~\autoref{fig:lda_results}). 
+We trained LDA for 200 passes, which took 44 minutes, and the full
+results are shown in the appendix (~\autoref{fig:lda_results}).
 
 \begin{figure}[ht]
   \begin{tabularx}{\linewidth}{|r | X|}
@@ -585,12 +586,14 @@ in documents about topic modeling, and similarly topic 2 in documents
 about reinforcement learning, and topic 3 in documents about
 algorithmic complexity.
 
-To train DTM, we split the documents into slices corresponding to
-their years. DTM took 3.9 hours to train, substantially longer than
-LDA, and this can be attributed to the increased model complexity. We
+To train DTM, we discretized the corpus into time slices that span a
+year. Unlike LDA, DTM was trained until convergence. This renders any
+quantitative comparisons ineffective. DTM took 3.9 hours to train. We
 inferred the topic distributions for three time slices, and they are
 displayed in the appendix (~\autoref{fig:dtm_slice1},
-~\autoref{fig:dtm_slice2}, ~\autoref{fig:dtm_slice3}).
+~\autoref{fig:dtm_slice2}, ~\autoref{fig:dtm_slice3}). We also show
+the evolution of a single topic across 10 time slices in
+~\autoref{fig:dtm_evo}.
 
 \begin{figure}[ht]
   \begin{tabularx}{\linewidth}{|r | X|}
@@ -606,11 +609,12 @@ displayed in the appendix (~\autoref{fig:dtm_slice1},
     mentioned more in this abstract topic, in later years. }
 \end{figure}
 
-We notice that the highly probable words in each topic remain largely
-unchanged across each time slice. ~\autoref{fig:dtm_trunc}} shows that
-in the last time slice, ``markov'' managed to squeeze into the top 6
-words of the abstract topic. Perhaps this is indicative of an
-increased usage of Markov related techniques in the later years.
+By comparing the three time slices, we notice that the highly probable
+words in each topic remain largely unchanged across each time slice in
+this dataset. ~\autoref{fig:dtm_trunc} shows that in the last time
+slice, ``markov'' squeezed into the top 6 words of the abstract topic.
+Perhaps this is indicative of an increased usage of Markov related
+techniques in the later years.
 
 \section{Evaluating Topic Models}
 \label{sec:evaluation}
@@ -629,15 +633,44 @@ probability of held-out documents given a trained model
 \cite{wallach2009evaluation}, and we refer you to
 \citeauthor{wallach2009evaluation} for a full treatment.
 
-We look at the analysis of results from each of the papers. In the
-seminal paper for LDA, \citeauthor{blei2003latent} computed the
-perplexity of held-out documents to evaluate the topic models.
-Perplexity is a commonly used metric in language modeling, and is
-equivalent to the inverse of the geometric mean per-word likelihood.
-Lower perplexity indicates better generalisation performance
-\cite{blei2003latent}.
+We look at the evaluations of the topic models from each of the
+papers. In the seminal paper for LDA, \citeauthor{blei2003latent}
+computed the perplexity of held-out documents to evaluate the topic
+models. Perplexity is a commonly used metric in language modeling, and
+is equivalent to the inverse of the geometric mean per-word
+likelihood. Lower perplexity indicates better generalisation
+performance \cite{blei2003latent}. In their experiment,
+\citeauthor{blei2003latent} used a corpus of scientific abstracts from
+the C. Elegans community (5,255 documents with 28,414 terms) and a
+corpus of newswire articles (16,333 documents with 23,075 terms). In
+both cases, 10\% of the documents were held out for test purposes.
+Comparing LDA with pLSA, LDA achieved lower perplexity scores, and LSI
+and pLSA suffered from severe overfitting issues. This was attributed
+to the ability of LDA to assign probability to a new document without
+additional heuristics \cite{blei2003latent}.
 
-%% ADD MORE DETAIL
+In the seminal paper for CTM, \citeauthor{blei2005correlated} fitted
+both CTM and LDA to a smaller collection of articles to models of
+varying number of topics. It was shown that the average held-out
+probability of documents for CTM was consistently better than LDA, and
+CTM supported more topics than LDA. This is because CTM is more
+expressive than LDA: LDA will only predict words based on latent
+topics suggested by observations, but CTM can also predict words
+associated with topics correlated with the conditionally probable
+topics \cite{blei2005correlated}.
+
+To evaluate DTM, \citeauthor{blei2006dynamic} selected 250 articles
+from each of the 120 years between 1881 and 1999 from the Journal
+\textit{Science}. The task of predicting the next year in
+\textit{Science} given all the articles from the previous years was
+considered. Three models were compared: DTM trained on all documents
+from previous years, LDA trained on all documents from previous years,
+and LDA trained on documents from a single previous year. DTM was
+shown to assign a higher likelihood to next year's articles
+\cite{blei2006dynamic}. It was also noted that the predictive power of
+each model decreases each year, suggesting that factoring time into
+the model is important for the task of trend detection in scientific
+documents.
 
 \section{Conclusion}
 In this paper, we have discussed the importance of topic modeling, and
@@ -660,18 +693,22 @@ the problem.
 There are many topic models that are not covered in this survey. For
 example, the topic models we have covered train only on document text.
 Yet, scientific documents often come with useful metadata. The
-author-topic model exploits this metadata \cite{rosen2004author}.
+author-topic model exploits this metadata \cite{rosen2004author}. We
+hope to investigate these models in detail in future work.
 
 In addition, there was no attempt to evaluate the trained topic
-models. Producing benchmarks for these models on the same corpus
-should provide immense value to the research community.
+models, nor was there an attempt to provide a fair comparison between
+the topic models. Producing benchmarks for all aforementioned models
+on the same corpus should provide immense value to the research
+community.
 
 The topic models we have surveyed are directed graphical models.
 Despite the recent discoveries in deep learning, LDA, which is over a
 decade old, has not been replaced as the mainstay for topic modeling.
-There have been promising development in topic modeling with deep
+There has been promising development in topic modeling with deep
 generative models \cite{hinton2009replicated, larochelle2012neural,
-  cao2015novel}. In future we hope to explore this area.
+  cao2015novel}. This area of research is still relatively unexplored,
+and we believe there is much to explore.
 
 \bibliography{survey}
 
@@ -681,43 +718,45 @@ generative models \cite{hinton2009replicated, larochelle2012neural,
 \label{sec:appendix}
 
 \begin{figure}[ht]
+  \centering
   \begin{tabular}{l | l l l l l l}
     &     word0    &      word1 &          word2 &         word3 & word4 &        word5 \\ \hline
-    topic0 & 	online & 	batch & 	rnn & 	learner & 	eigenvalue & 	stability \\
-    topic1 & 	effect & 	adaptation & 	gain & 	control & 	line & 	response \\
-    topic2 & 	word & 	layer & 	sequence & 	recognition & 	image & 	context \\
-    topic3 & 	loss & 	estimator & 	regression & 	estimation & 	prediction & 	noise \\
-    topic4 & 	image & 	map & 	object & 	detection & 	attention & 	motion \\
-    topic5 & 	layer & 	latent & 	code & 	user & 	architecture & 	unit \\
-    topic6 & 	graph & 	tensor & 	vertex & 	edge & 	decomposition & 	ranking \\
-    topic7 & 	group & 	optimization & 	constraint & 	iteration & 	marginals & 	solver \\
-    topic8 & 	cvpr & 	influence & 	rating & 	relu & 	effect & 	prediction \\
-    topic9 & 	mixture & 	covariance & 	likelihood & 	component & 	density & 	estimation \\
-    topic10 & 	oracle & 	preprint & 	memory & 	cnn & 	phase & 	capacity \\
-    topic11 & 	policy & 	action & 	reward & 	game & 	agent & 	regret \\
-    topic12 & 	inference & 	arxiv & 	source & 	markov & 	chain & 	factorization \\
-    topic13 & 	gradient & 	convergence & 	iteration & 	policy & 	update & 	equation \\
-    topic14 & 	image & 	filter & 	patch & 	video & 	pixel & 	scene \\
-    topic15 & 	arxiv & 	event & 	dropout & 	speech & 	sequence & 	recognition \\
-    topic16 & 	classification & 	datasets & 	classifier & 	kernel & 	query & 	tree \\
-    topic17 & 	topic & 	rule & 	round & 	program & 	word & 	atom \\
-    topic18 & 	theorem & 	bound & 	cluster & 	lemma & 	complexity & 	proof \\
-    topic19 & 	image & 	distance & 	subspace & 	dataset & 	component & 	face \\
-    topic20 & 	bound & 	log & 	regularization & 	variance & 	hyperparameters & 	complexity \\
-    topic21 & 	brain & 	cell & 	population & 	correlation & 	activity & 	response \\
-    topic22 & 	gene & 	design & 	power & 	cnns & 	circuit & 	calibration \\
-    topic23 & 	neuron & 	spike & 	response & 	activity & 	stimulus & 	population \\
-    topic24 & 	edge & 	segmentation & 	image & 	target & 	label & 	field \\
-    topic25 & 	document & 	price & 	market & 	consensus & 	bregman & 	day \\
-    topic26 & 	kernel & 	projection & 	recovery & 	operator & 	embeddings & 	column \\
-    topic27 & 	node & 	message & 	language & 	communication & 	runtime & 	parent \\
-    topic28 & 	optimization & 	gradient & 	norm & 	loss & 	convex & 	descent \\
-    topic29 & 	arm & 	trajectory & 	feedback & 	control & 	song & 	movement \\
+    topic0 & optimization & gradient & convergence & iteration & constraint & descent \\
+    topic1 & policy & action & reward & agent & reinforcement & transition \\
+    topic2 & target & effect & trial & causal & decision & cue \\
+    topic3 & distance & tensor & dimension & similarity & transformation & neighbor \\
+    topic4 & game & player & strategy & expert & equilibrium & action \\
+    topic5 & rule & question & relation & knowledge & concept & symbol \\
+    topic6 & neuron & circuit & cell & connection & activity & synapsis \\
+    topic7 & image & object & recognition & vision & pixel & segmentation \\
+    topic8 & topic & document & word & dirichlet & lda & latent \\
+    topic9 & kernel & component & eigenvalue & covariance & basis & operator \\
+    topic10 & bound & loss & theorem & proof & complexity & log \\
+    topic11 & layer & architecture & gradient & loss & preprint & unit \\
+    topic12 & control & trajectory & movement & motor & feedback & hand \\
+    topic13 & field & motion & cell & filter & location & direction \\
+    topic14 & sequence & event & transition & gene & interaction & expression \\
+    topic15 & query & cost & search & code & worker & communication \\
+    topic16 & response & neuron & spike & stimulus & population & activity \\
+    topic17 & node & tree & inference & graph & message & factor \\
+    topic18 & prediction & regression & arxiv & selection & dataset & datasets \\
+    topic19 & block & path & implementation & chip & processor & operation \\
+    topic20 & unit & energy & equation & noise & generalization & activation \\
+    topic21 & memory & pattern & category & capacity & prototype & item \\
+    topic22 & source & speech & signal & domain & recognition & frequency \\
+    topic23 & word & language & sentence & context & sequence & translation \\
+    topic24 & graph & cluster & edge & item & vertex & clustering \\
+    topic25 & group & region & brain & level & map & module \\
+    topic26 & rank & sparse & column & norm & sparsity & entry \\
+    topic27 & regret & arm & bandit & bound & online & round \\
+    topic28 & classification & label & classifier & margin & instance & decision \\
+    topic29 & inference & density & log & likelihood & estimate & mixture \\
   \end{tabular}
   \caption{\label{fig:lda_results} Top 6 words of the 30 topic distributions from the LDA model trained on the NIPS papers dataset.}
 \end{figure}
 
 \begin{figure}[ht]
+  \centering
   \begin{tabular}{l | l l l l l l}
     &     word0    &      word1 &          word2 &         word3 & word4 &        word5 \\ \hline
     topic0 & 	node & 	tree & 	graph & 	message & 	path & 	link \\
@@ -755,6 +794,7 @@ generative models \cite{hinton2009replicated, larochelle2012neural,
 \end{figure}
 
 \begin{figure}[ht]
+  \centering
   \begin{tabular}{l | l l l l l l}
     &     word0    &      word1 &          word2 &         word3 & word4 &        word5 \\ \hline
     topic0 & 	node & 	tree & 	graph & 	message & 	path & 	edge \\
@@ -792,6 +832,7 @@ generative models \cite{hinton2009replicated, larochelle2012neural,
 \end{figure}
 
 \begin{figure}[ht]
+  \centering
   \begin{tabular}{l | l l l l l l}
     &     word0    &      word1 &          word2 &         word3 & word4 &        word5 \\ \hline
     topic0 & 	node & 	tree & 	graph & 	path & 	message & 	edge \\
@@ -822,10 +863,30 @@ generative models \cite{hinton2009replicated, larochelle2012neural,
     topic25 & 	control & 	sequence & 	controller & 	chain & 	protein & 	plant \\
     topic26 & 	action & 	reinforcement & 	control & 	environment & 	controller & 	goal \\
     topic27 & 	field & 	energy & 	temperature & 	transition & 	boltzmann & 	markov \\
-    topic28 & 	query & 	user & 	retrieval & 	document & 	word & 	text \\
-    topic29 & 	word & 	character & 	letter & 	recognition & 	language & 	role \\
+    topic28 & 	query & 	user & 	retrieval & 	document & word & text \\
+    topic29 & word & character & letter & recognition & language & role \\
   \end{tabular}
   \caption{\label{fig:dtm_slice3} Top 6 words of the 30 topic distributions in slice 3 of the DTM model trained on the NIPS papers dataset.}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tabular}{|l | l |}
+    \hline
+     time slice & words \\ \hline
+    0 & node, tree, graph, message, path, link, edge, cycle, branch, parent \\ \hline
+    1 &	node, tree, graph, message, path, edge, link, cycle, branch, parent \\ \hline
+    2 &	node, tree, graph, path, message, edge, link, cycle, branch, parent \\ \hline
+    3 & node, tree, graph, path, message, edge, link, cycle, parent, branch \\ \hline
+    4 &	node, tree, graph, path, edge, message, link, parent, cycle, level \\ \hline
+    5 &	node, tree, graph, path, edge, message, link, parent, level, leaf \\ \hline
+    6 &	node, tree, graph, path, edge, message, link, parent, leaf, level \\ \hline
+    7 &	node, tree, graph, path, edge, message, link, parent, leaf, propagation \\ \hline
+    8 &	node, tree, graph, path, edge, message, parent, propagation, belief, link \\ \hline
+    9 &	node, tree,	graph, path, edge, belief, message, propagation, parent,	leaf \\ \hline
+  \end{tabular}
+  \caption{\label{fig:dtm_evo} Evolution of Topic 1 across 10 time
+    slices in the DTM model trained on the NIPS papers dataset.}
 \end{figure}
 
 \end{document}
