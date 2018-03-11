@@ -625,21 +625,20 @@ human interpretation, which may not be suitable, depending on the
 task. This evaluation metric is subjective and not reproducible, and
 leaves much to be desired.
 
-The evaluation of topic models is also an area of research that is
-relatively unexplored. The unsupervised nature of topic modeling makes
-model selection difficult: there are no gold labels for topics and
-document topic proportions. The most common evaluation metric is the
-probability of held-out documents given a trained model
-\cite{wallach2009evaluation}, and we refer you to
-\citeauthor{wallach2009evaluation} for a full treatment.
+The unsupervised nature of topic modeling makes model selection
+difficult: there are no gold labels for topics and document topic
+proportions. The most common evaluation metric is the probability of
+held-out documents given a trained model \cite{wallach2009evaluation},
+and we refer you to \citeauthor{wallach2009evaluation} for a full
+treatment.
 
-We look at the evaluations of the topic models from each of the
-papers. In the seminal paper for LDA, \citeauthor{blei2003latent}
-computed the perplexity of held-out documents to evaluate the topic
-models. Perplexity is a commonly used metric in language modeling, and
-is equivalent to the inverse of the geometric mean per-word
-likelihood. Lower perplexity indicates better generalisation
-performance \cite{blei2003latent}. In their experiment,
+To compare the topic models, We look at evaluations from each of the
+seminal papers. For LDA, \citeauthor{blei2003latent} computed the
+perplexity of held-out documents to evaluate the topic models.
+Perplexity is a commonly used metric in language modeling, and is
+equivalent to the inverse of the geometric mean per-word likelihood.
+Lower perplexity indicates better generalisation performance
+\cite{blei2003latent}. In their experiment,
 \citeauthor{blei2003latent} used a corpus of scientific abstracts from
 the C. Elegans community (5,255 documents with 28,414 terms) and a
 corpus of newswire articles (16,333 documents with 23,075 terms). In
@@ -687,7 +686,9 @@ To demonstrate what topic models are capable of, we trained LDA and
 DTM on the NIPS dataset, and provided the Jupyter notebooks for
 reference. We also briefly discussed the difficulties faced in
 evaluating topic models, that arise from the unsupervised nature of
-the problem.
+the problem. We then summarised the evaluation results for each topic
+model from the original papers. We note that the evaluation task
+differs across each paper, so no combined comparison can be made.
 
 \section{Future Work}
 There are many topic models that are not covered in this survey. For
