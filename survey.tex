@@ -453,11 +453,12 @@ whose stationary distribution is the posterior $P( z | x)$.
 Samples are drawn from the stationary distribution, and used to
 approximate the posterior empirically.
 
-In Gibbs sampling, the space of the Markov Chain is the space of the
-configurations of the hidden variables. The next state is reached by
-sequentially sampling all variables from the distribution, conditioned
-on all the current sampled values. After a ``burn-in'' period, the
-samples would be drawn from the posterior distribution.
+Gibbs sampling is a commonly used inference technique in topic
+modeling. In Gibbs sampling, the space of the Markov Chain is the
+space of the configurations of the hidden variables. The next state is
+reached by sequentially sampling all variables from the distribution,
+conditioned on all the current sampled values. After a ``burn-in''
+period, the samples would be drawn from the posterior distribution.
 
 \begin{algorithm}
 \caption{Gibbs Sampling}\label{alg:gibbs}
