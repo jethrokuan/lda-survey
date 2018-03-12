@@ -424,12 +424,17 @@ models. A misfit between the complexity of the model and the amount
 and quality of data available can lead to severe underfitting or
 overfitting \cite{teh2011dirichlet}.
 
-Bayesian non-parametric models provide an elegant solution to this
+Bayesian non-parametric models (BNPs) provide an elegant solution to this
 issue. The non-parametric approach allows the model to grow in
-complexity as more data is observed. These non-parametric models have
-also been extended to hierarchies of topics \cite{blei2010nested}. The
-granularity of topics can be helpful in some tasks, such as trend
-detection.
+complexity as more data is observed. BNP solves the problem of
+choosing the number of topics by assuming that the number of topics
+are infinite, but favours the assignment of documents to a small
+number of topics \cite{gershman2012tutorial}. We refer you to the
+tutorial in \cite{gershman2012tutorial} for a full treatment.
+
+These non-parametric models have also been extended to hierarchies of
+topics \cite{blei2010nested}. The granularity of topics can be helpful
+in some tasks, such as trend detection.
 
 Bayesian non-parametric models has seen some success in recommendation
 systems \cite{gopalan2014bayesian}, a popular modeling technique in
@@ -447,18 +452,23 @@ methods are MCMC sampling and Variational Inference.
 \subsection{MCMC Sampling}
 \label{subsec:mcmc-sampling}
 Historically, Markov Chain Monte Carlo (MCMC) sampling has been the
-dominant technique for approximating posterior densities. In MCMC, we
-construct an ergodic Markov chain on the latent variable $z$,
-whose stationary distribution is the posterior $P( z | x)$.
-Samples are drawn from the stationary distribution, and used to
-approximate the posterior empirically.
+dominant technique for approximating posterior densities. MCMC methods
+shine when attempting to sample from multi-dimensional distributions,
+where traditional methods like rejection sampling suffer greatly from
+the curse of dimensionality. In MCMC, we construct an ergodic Markov
+chain on the latent variable $z$, whose stationary distribution is the
+posterior $P( z | x)$. Samples can be treated as drawn from the
+stationary distribution, and used to approximate the posterior
+empirically.
 
-Gibbs sampling is a commonly used inference technique in topic
-modeling. In Gibbs sampling, the space of the Markov Chain is the
-space of the configurations of the hidden variables. The next state is
-reached by sequentially sampling all variables from the distribution,
-conditioned on all the current sampled values. After a ``burn-in''
-period, the samples would be drawn from the posterior distribution.
+The most notable MCMC methods in topic modeling are the
+Metropolis-Hastings (MH) algorithms, and Gibbs samplers.
+
+In Gibbs sampling, the space of the Markov Chain is the space of the
+configurations of the hidden variables. The next state is reached by
+sequentially sampling all variables from the distribution, conditioned
+on all the current sampled values. After a ``burn-in'' period, the
+samples would be drawn from the posterior distribution.
 
 \begin{algorithm}
 \caption{Gibbs Sampling}\label{alg:gibbs}
@@ -474,7 +484,60 @@ period, the samples would be drawn from the posterior distribution.
 \end{algorithm}
 
 A full treatment of Gibbs Sampling applied to LDA can be found in
-\cite{griffiths2002gibbs}.
+\cite{griffiths2002gibbs}. Gibbs sampling is easy to use, because it
+has no parameters. For some topic models, collapsed Gibbs sampling may
+be applied. \citeauthor{griffiths2004finding} exploits sparsity to
+decompose the collapsed sampler: instead of explicitly representing
+$\beta$ and $\theta$ as parameters to be estimated, they are
+integrated out. The posterior distribution over the assignment of
+words to topics $P(z|w)$ is considered instead, and used to estimate
+$\beta$ and $\theta$ \cite{griffiths2004finding}. This reduces
+sampling complexity from $O(K)$ to $O(k_d + k_w)$, where $k_d$ and
+$k_w$ are the number of topics occurring for a particular document and
+word respectively.
+
+Gibbs sampling suffers from several drawbacks. First, it is possible
+that samples drawn are very correlated, and it might take a long time
+to reach its stationary state (long ``burn-in'' period). Second, the
+conditional distributions may not have a nice form if the
+distributions were not conjugates. The Metropolis-Hastings (MH)
+algorithm is the generalisation of the Gibbs
+sampler that addresses these issues.
+
+The MH algorithm utilises a function $\hat{\pi}(x)$ that is
+proportional to the target probability density $\pi(x)$. It then
+generates samples from a
+\textit{proposal} or \textit{candidate kernel} $q(x, y)$
+\cite{chib1995understanding}.
+
+\begin{algorithm}
+  \caption{Metropolis-Hastings Sampling}\label{alg:mh}
+  \begin{algorithmic}[1]
+    \State Given $X^{(t) = x^{(t)}}$
+   
+    \State Generate $Y_t \sim q(y | x^{(t)})$
+    \State Take:
+    \begin{equation*}
+      X^{(t)} = 
+      \begin{cases}
+        Y_t \text{ with probability } \rho\left(x^{(t)}, Y_t  \right) \\
+        x^{(t)} \text{ with probability } 1 - \rho\left(x^{(t)}, Y_t  \right)
+      \end{cases}
+    \end{equation*}
+    Where:
+    \begin{equation*}
+      \rho(x,y) = min\left\{ \frac{\pi(x)}{\hat{\pi}(x)} \frac{q(x |
+        y)}{q(y|x)}, 1 \right\}
+    \end{equation*}
+\end{algorithmic}
+\end{algorithm}
+
+The generic nature of the MH algorithm allows it to be applied to many
+different topic models, including Bayesian non-parametric models.
+\citeauthor{li2014reducing} observed that model parameters changed
+slowly during sampling, and exploits this to produce an efficient MH
+sampling algorithm that could be applied to many topic models
+\cite{li2014reducing}.
 
 \subsection{Variational Inference}
 \label{subsec:vi}
@@ -543,9 +606,9 @@ requires conjugacy of the prior and posterior distributions. When this
 is not possible (in DTM for example), VI methods can perform better
 than other sampling methods in the MCMC family.
 
-A closer look at the different inference approximation algorithms
-also shows that the performance differences can be explained away by
-setting certain smoothing hyperparameters
+However, a closer look at the different inference approximation
+algorithms also shows that the performance differences can be
+explained away by setting certain smoothing hyperparameters
 \cite{asuncion-2012-smoot-infer}.
 
 \section{Example Topic Model Training}
@@ -562,7 +625,7 @@ We trained LDA and DTM, using implementations readily available within
 Gensim, a popular topic modeling library.
 
 To clean the raw text, we lemmatize, remove stop words, and keep only
-the nouns. After removing tokens that rarely occur, or occur too often
+noun phrases. After removing tokens that rarely occur, or occur too often
 to be meaningful, the corpus of 7241 documents produced a dictionary
 of 54254 unique tokens. We set $K = 30$ topics.
 
